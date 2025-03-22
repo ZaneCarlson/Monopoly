@@ -15,50 +15,66 @@ namespace Monopoly
     public partial class Form1 : Form
     {
         public int NUM_OF_PLAYERS;
-
         public Form1()
         {
             NUM_OF_PLAYERS = 4;
-            Player bank = new Player();
+            Player bank = new Player(99);
             Board board = new Board(bank);
-            GameManager gameManager = new GameManager(NUM_OF_PLAYERS);
+            GameManager gameManager = new GameManager(NUM_OF_PLAYERS, board);
+            
+
             InitializeComponent();
             SuspendLayout();
             Tile tile = new Tile("temp", 0, 0);
+            this.tableLayoutPanel1.Controls.Add(gameManager.rollButton, 5, 5);
             for (int i = 0; i < board.tiles.Length; i++)
             {
                 tile = board.tiles[i];
                 this.tableLayoutPanel1.Controls.Add(tile.tileLayout, tile.column, tile.row);
                 tile.tileLayout.ColumnCount = 1;
-                tile.tileLayout.RowCount = 2;
+                tile.tileLayout.RowCount = 4;
                 tile.tileLayout.ColumnStyles.Add(new System.Windows.Forms.ColumnStyle(System.Windows.Forms.SizeType.Percent, 100F));
                 tile.tileLayout.RowStyles.Add(new System.Windows.Forms.RowStyle(System.Windows.Forms.SizeType.Percent, 20F));
-                tile.tileLayout.RowStyles.Add(new System.Windows.Forms.RowStyle(System.Windows.Forms.SizeType.Percent, 60F));
+                tile.tileLayout.RowStyles.Add(new System.Windows.Forms.RowStyle(System.Windows.Forms.SizeType.Percent, 40F));
                 tile.tileLayout.RowStyles.Add(new System.Windows.Forms.RowStyle(System.Windows.Forms.SizeType.Percent, 20F));
+                tile.tileLayout.RowStyles.Add(new System.Windows.Forms.RowStyle(System.Windows.Forms.SizeType.Percent, 20F));
+
                 tile.tileLayout.Controls.Add(tile.header, 0, 0);
                 tile.tileLayout.Controls.Add(tile.body, 0, 1);
+                tile.tileLayout.Controls.Add(tile.playerSlots, 0, 3);
                 tile.tileLayout.Controls.Add(tile.footer, 0, 2);
                 
-                
 
+                tile.playerSlots.ColumnCount = 4;
+                tile.playerSlots.ColumnStyles.Add(new System.Windows.Forms.ColumnStyle(System.Windows.Forms.SizeType.Percent, 25F));
+                tile.playerSlots.ColumnStyles.Add(new System.Windows.Forms.ColumnStyle(System.Windows.Forms.SizeType.Percent, 25F));
+                tile.playerSlots.ColumnStyles.Add(new System.Windows.Forms.ColumnStyle(System.Windows.Forms.SizeType.Percent, 25F));
+                tile.playerSlots.ColumnStyles.Add(new System.Windows.Forms.ColumnStyle(System.Windows.Forms.SizeType.Percent, 25F));
+                tile.playerSlots.RowCount = 1;
+                tile.playerSlots.RowStyles.Add(new System.Windows.Forms.RowStyle(System.Windows.Forms.SizeType.Percent, 100F));
+
+                tile.playerSlots.Controls.Add(tile.playerSlot[0], 0, 0);
+                tile.playerSlots.Controls.Add(tile.playerSlot[1], 1, 0);
+                tile.playerSlots.Controls.Add(tile.playerSlot[2], 2, 0);
+                tile.playerSlots.Controls.Add(tile.playerSlot[3], 3, 0);
             }    
             ResumeLayout(false);
-
-
-            //gameManager.enterGameLoop();
         }
 
         class Tile
-        {
-            
+        { 
             public System.Windows.Forms.TableLayoutPanel tileLayout;
+            public System.Windows.Forms.TableLayoutPanel playerSlots;
             public System.Windows.Forms.Label body;
             public System.Windows.Forms.Label header;
             public System.Windows.Forms.Label footer = new System.Windows.Forms.Label();
+            public System.Windows.Forms.Label[] playerSlot = { new System.Windows.Forms.Label(), new System.Windows.Forms.Label(), new System.Windows.Forms.Label(), new System.Windows.Forms.Label() };
             public String name;
             public int row;
             public int column;
             public System.Windows.Forms.Label TileName;
+
+
             public Tile(String name, int row, int column, Color? color = null)
             {
                 this.name = name;
@@ -66,24 +82,40 @@ namespace Monopoly
                 this.column = column;
                 body = new System.Windows.Forms.Label();
                 header = new System.Windows.Forms.Label();
+
                 tileLayout = new System.Windows.Forms.TableLayoutPanel();
                 tileLayout.CellBorderStyle = TableLayoutPanelCellBorderStyle.Inset;
+                tileLayout.Margin = System.Windows.Forms.Padding.Empty;
+
+                playerSlots = new System.Windows.Forms.TableLayoutPanel();
+                playerSlots.CellBorderStyle = TableLayoutPanelCellBorderStyle.Inset;
+                playerSlots.Margin = System.Windows.Forms.Padding.Empty;
+                for( int i = 0; i < playerSlot.Length; i++ )
+                {
+                    playerSlot[i].Size = new Size(13, 5);
+                    playerSlot[i].Visible = false;
+                }
+                playerSlot[0].BackColor = Color.Blue;
+                playerSlot[1].BackColor = Color.Green;
+                playerSlot[2].BackColor = Color.Red;
+                playerSlot[3].BackColor = Color.Yellow;
 
                 header.BackColor = color ?? Color.Gray;
                 header.Size = new Size(90, 90);
-                header.Margin = new System.Windows.Forms.Padding(0, 0, 0, 0);
+                header.Margin = System.Windows.Forms.Padding.Empty;
 
                 body.Size = new Size(90, 90);
                 body.BackColor = Color.White;
                 body.TextAlign = ContentAlignment.TopCenter;
                 body.Text = name;
-                body.Margin = new System.Windows.Forms.Padding(0, 0, 0, 0);
+                body.Margin = System.Windows.Forms.Padding.Empty;
+
 
                 footer.Visible = false;
                 
             }
 
-            public virtual void Land_On_Tile(Player player)
+            public virtual void Land_On_Tile(Player player, GameManager gameManager)
             {
                 ;
             }
@@ -95,10 +127,15 @@ namespace Monopoly
                 : base(name, row, column, color)
             {
                 body.BackColor = Color.Green;
+                for (int i = 0; i < playerSlot.Length; i++)
+                {
+                    playerSlot[i].Visible = true;
+                }
             }
 
-            public override void Land_On_Tile(Player player)
+            public override void Land_On_Tile(Player player, GameManager gameManager)
             {
+                Console.WriteLine("Player " + player.id + " Landed on " + name + "!");
                 //bank pays player $200
             }
         }
@@ -111,10 +148,14 @@ namespace Monopoly
 
             }
 
-            public override void Land_On_Tile(Player player)
+            public override void Land_On_Tile(Player player, GameManager gameManager)
             {
+                Console.WriteLine("Player " + player.id + " Landed on " + name + "!");
                 // player jailed = true
                 // player location set to (10, 0)
+                player.location.playerSlot[player.id].Visible = false;
+                player.location = gameManager.board.tiles[10];
+                player.location.playerSlot[player.id].Visible = true;
             }
         }
 
@@ -130,8 +171,9 @@ namespace Monopoly
                 footer.Visible = true;
                 //Tax Constructor
             }
-            public override void Land_On_Tile(Player player)
+            public override void Land_On_Tile(Player player, GameManager gameManager)
             {
+                Console.WriteLine("Player " + player.id + " Landed on " + name + "!");
                 //passed in player pays bank the tax amount
             }
         }
@@ -143,8 +185,9 @@ namespace Monopoly
             {
 
             }
-            public override void Land_On_Tile(Player player)
+            public override void Land_On_Tile(Player player, GameManager gameManager)
             {
+                Console.WriteLine("Player " + player.id + " Landed on " + name + "!");
                 //passed in player draws a CC card
             }
         }
@@ -156,8 +199,9 @@ namespace Monopoly
             {
 
             }
-            public override void Land_On_Tile(Player player)
+            public override void Land_On_Tile(Player player, GameManager gameManager)
             {
+                Console.WriteLine("Player " + player.id + " Landed on " + name + "!");
                 //passed in player draws a chance card
             }
         }
@@ -192,8 +236,9 @@ namespace Monopoly
                 //Land Constructor
             }
 
-            public override void Land_On_Tile(Player player)
+            public override void Land_On_Tile(Player player, GameManager gameManager)
             {
+                Console.WriteLine("Player " + player.id + " Landed on " + name + "!");
                 //if owner == bank then let Player buy land.
                 //if player land != owner, then pay income to owner from passed in player.
             }
@@ -208,8 +253,9 @@ namespace Monopoly
                 
             }
 
-            public override void Land_On_Tile(Player player)
+            public override void Land_On_Tile(Player player, GameManager gameManager)
             {
+                Console.WriteLine("Player " + player.id + " Landed on " + name + "!");
                 //if owner == bank then let Player buy Railroad.
                 //if player != owner then pay based on number of railroads owner owns
                 //formula for rent: 25 x 2^(n-1) where n = number of railroads owner owns.
@@ -224,8 +270,9 @@ namespace Monopoly
                 
             }
 
-            public override void Land_On_Tile(Player player)
+            public override void Land_On_Tile(Player player, GameManager gameManager)
             {
+                Console.WriteLine("Player " + player.id + " Landed on " + name + "!");
                 //if owner == bank then let Player buy utility.
                 //if player != owner then pay based on number of utilities owner owns
                 //formula for rent: 4 x dice roll
@@ -287,26 +334,69 @@ namespace Monopoly
                   new Land("Boardwalk", 9, 10, Color.Blue, bank, 400, 200, 200, new int[] {50, 200, 600, 1400, 1700, 2000})
                 };
             }
-
+           
         }
 
         class Player
         {
-           
+           public Tile location;
+           public int id;
+           public Player(int id)
+            {
+                this.id = id;  
+            }
         }
 
 
         class GameManager
         {
             public Player[] players;
-            public GameManager(int NUM_OF_PLAYERS )
+            int i = 0;
+            Random random;
+            public Board board;
+            public Button rollButton;
+            public GameManager(int NUM_OF_PLAYERS, Board board)
             {
+                this.board = board;
+                random = new Random();
+                rollButton = new Button();
+                rollButton.Text = "Roll Dice";
+                rollButton.Click += new System.EventHandler(this.RollDice);
+                rollButton.Size = new Size(80, 80);
+                rollButton.BackColor = Color.Aquamarine;
+
                 players = new Player[NUM_OF_PLAYERS];
+                for (int i = 0; i < NUM_OF_PLAYERS; i++)
+                {
+                    players[i] = new Player(i);
+                    players[i].location = board.tiles[0];
+                    players[i].location.Land_On_Tile(players[i], this);
+                }
+            }
+            private void RollDice(object sender, EventArgs e)
+            {
+                int currentIndex = Array.IndexOf(board.tiles, players[i].location);
+                int dice1 = random.Next(1, 7);
+                int dice2 = random.Next(1, 7);
+                players[i].location.playerSlot[i].Visible = false;
+                int nextLocation = (currentIndex + dice1 + dice2) % 40;
+                players[i].location = board.tiles[nextLocation];
+                players[i].location.Land_On_Tile(players[i], this);
+                players[i].location.playerSlot[i].Visible = true;
+
+                if (dice1 == dice2)
+                {
+                    return;
+                }
+                else
+                {
+                    i++;
+                    if (i == players.Length)
+                    {
+                        i = 0;
+                    }
+                }
             }
         }
     }
-
-
-   
-
 }
