@@ -93,6 +93,10 @@ namespace Monopoly
             {
 
             }
+            public override void Land_On_Tile(Player player)
+            {
+                //passed in player draws a CC card
+            }
         }
 
         class Chance : Tile
@@ -101,6 +105,10 @@ namespace Monopoly
                 : base(name, row, column, color)
             {
 
+            }
+            public override void Land_On_Tile(Player player)
+            {
+                //passed in player draws a chance card
             }
         }
 
@@ -151,10 +159,26 @@ namespace Monopoly
             {
                 //if owner == bank then let Player buy Railroad.
                 //if player != owner then pay based on number of railroads owner owns
-                //formula for rent: 25 * 2^(n-1) where n = number of railroads owner owns.
+                //formula for rent: 25 x 2^(n-1) where n = number of railroads owner owns.
             }
         }
 
+        class Utility : Contract
+        {
+            public Utility(String name, int row, int column, Color color, Player owner, int price, int mortgageValue)
+                : base(name, row, column, color, owner, price, mortgageValue)
+            {
+                
+            }
+
+            public override void Land_On_Tile(Player player)
+            {
+                //if owner == bank then let Player buy utility.
+                //if player != owner then pay based on number of utilities owner owns
+                //formula for rent: 4 x dice roll
+                //if two owned then 10 x dice roll
+            }
+        }
         class Board
         {
             public Tile[] tiles;
@@ -179,7 +203,16 @@ namespace Monopoly
                   new Land("Vermont Ave", 10, 2, Color.LightBlue, bank, 100, 50, 50, new int[] {6, 30, 90, 270, 400, 550}),
                   new Land("Connecticut Ave", 10, 1, Color.LightBlue, bank, 120, 60, 50, new int[] {8, 40, 100,300, 450, 600}),
                   new Tile("Jail", 10, 0),
-                  new Land("New Charles Ave", 9, 0, Color.Pink, bank, 140, 70, 100, new int[] {10, 50, 150, 450, 625, 750})
+                  new Land("New Charles Ave", 9, 0, Color.Pink, bank, 140, 70, 100, new int[] {10, 50, 150, 450, 625, 750}),
+                  new Utility("Electric Company", 8, 0, Color.Gray, bank, 150, 75),
+                  new Land("State Ave", 7, 0, Color.Pink, bank, 140, 70, 100, new int[] {10, 50, 150, 450, 625, 750}),
+                  new Land("Virgina Ave", 6, 0, Color.Pink, bank, 160, 80, 100, new int[] {12, 60, 180, 500, 700, 900}),
+                  new Railroad("Pennsylvania Railroad", 5, 0, Color.Gray, bank, 200, 100),
+                  new Land("St. James Place", 4, 0, Color.Orange, bank, 180, 90, 100, new int[] {14, 70, 200, 550, 750}),
+                  new CommunityChest("CommunityChest", 3, 0, Color.Gray),
+                  new Land("Tennessee Ave", 2, 0, Color.Orange, bank, 180, 90, 100, new int[] {14, 70, 200, 550, 750}),
+                  new Land("New York Ave", 1, 0, Color.Orange, bank, 200, 100, 100, new int[] {16, 80, 220, 600, 800}),
+                  new Tile("Free Parking", 0, 0, Color.Gray)
                 };
             }
 
