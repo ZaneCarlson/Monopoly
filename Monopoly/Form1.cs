@@ -23,11 +23,26 @@ namespace Monopoly
             Board board = new Board(bank);
             GameManager gameManager = new GameManager(NUM_OF_PLAYERS);
             InitializeComponent();
-
+            SuspendLayout();
+            Tile tile = new Tile("temp", 0, 0);
             for (int i = 0; i < board.tiles.Length; i++)
             {
-                this.tableLayoutPanel1.Controls.Add(board.tiles[i].button, board.tiles[i].column, board.tiles[i].row);
+                tile = board.tiles[i];
+                this.tableLayoutPanel1.Controls.Add(tile.tileLayout, tile.column, tile.row);
+                tile.tileLayout.ColumnCount = 1;
+                tile.tileLayout.RowCount = 2;
+                tile.tileLayout.ColumnStyles.Add(new System.Windows.Forms.ColumnStyle(System.Windows.Forms.SizeType.Percent, 100F));
+                tile.tileLayout.RowStyles.Add(new System.Windows.Forms.RowStyle(System.Windows.Forms.SizeType.Percent, 20F));
+                tile.tileLayout.RowStyles.Add(new System.Windows.Forms.RowStyle(System.Windows.Forms.SizeType.Percent, 60F));
+                tile.tileLayout.RowStyles.Add(new System.Windows.Forms.RowStyle(System.Windows.Forms.SizeType.Percent, 20F));
+                tile.tileLayout.Controls.Add(tile.header, 0, 0);
+                tile.tileLayout.Controls.Add(tile.body, 0, 1);
+                tile.tileLayout.Controls.Add(tile.footer, 0, 2);
+                
+                
+
             }    
+            ResumeLayout(false);
 
 
             //gameManager.enterGameLoop();
@@ -35,7 +50,11 @@ namespace Monopoly
 
         class Tile
         {
-            public System.Windows.Forms.Button button;
+            
+            public System.Windows.Forms.TableLayoutPanel tileLayout;
+            public System.Windows.Forms.Label body;
+            public System.Windows.Forms.Label header;
+            public System.Windows.Forms.Label footer = new System.Windows.Forms.Label();
             public String name;
             public int row;
             public int column;
@@ -45,10 +64,23 @@ namespace Monopoly
                 this.name = name;
                 this.row = row;
                 this.column = column;
-                button = new System.Windows.Forms.Button();
-                button.BackColor = color ?? Color.Gray;
-                button.Size = new Size(73, 73);
-                button.Text = name;
+                body = new System.Windows.Forms.Label();
+                header = new System.Windows.Forms.Label();
+                tileLayout = new System.Windows.Forms.TableLayoutPanel();
+                tileLayout.CellBorderStyle = TableLayoutPanelCellBorderStyle.Inset;
+
+                header.BackColor = color ?? Color.Gray;
+                header.Size = new Size(90, 90);
+                header.Margin = new System.Windows.Forms.Padding(0, 0, 0, 0);
+
+                body.Size = new Size(90, 90);
+                body.BackColor = Color.White;
+                body.TextAlign = ContentAlignment.TopCenter;
+                body.Text = name;
+                body.Margin = new System.Windows.Forms.Padding(0, 0, 0, 0);
+
+                footer.Visible = false;
+                
             }
 
             public virtual void Land_On_Tile(Player player)
@@ -62,7 +94,7 @@ namespace Monopoly
             public GO(String name, int row, int column, Color color)
                 : base(name, row, column, color)
             {
-
+                body.BackColor = Color.Green;
             }
 
             public override void Land_On_Tile(Player player)
@@ -93,6 +125,9 @@ namespace Monopoly
                 : base(name, row, column, color) 
             {
                 this.taxAmount = taxAmount;
+                footer.Text = "-$" + taxAmount;
+                footer.TextAlign = ContentAlignment.TopCenter;
+                footer.Visible = true;
                 //Tax Constructor
             }
             public override void Land_On_Tile(Player player)
@@ -138,6 +173,9 @@ namespace Monopoly
                 this.owner = owner;
                 this.price = price;
                 this.mortgageValue = mortgageValue;
+                footer.TextAlign = ContentAlignment.TopCenter;
+                footer.Text = "$" + price;
+                footer.Visible = true;
                 //Contract Constructor
             }
         }
@@ -209,7 +247,7 @@ namespace Monopoly
                 tiles = new Tile[]
                 { new GO("GO", 10, 10, Color.Green),
                   new Land("Mediterranian Ave", 10, 9, Color.Indigo , bank, 60, 30, 50, new int[] {2, 10, 30, 90, 160, 250}),
-                  new CommunityChest("CommunityChest", 10, 8, Color.Gray),
+                  new CommunityChest("Community Chest", 10, 8, Color.Gray),
                   new Land("Baltic Ave", 10, 7, Color.Indigo, bank, 60, 30, 50, new int[] {4, 20, 60, 180, 320, 450}),
                   new Tax("Income Tax", 10, 6, Color.Gray, 200),
                   new Railroad("Reading Railroad", 10, 5, Color.Gray, bank, 200, 100),
@@ -224,7 +262,7 @@ namespace Monopoly
                   new Land("Virgina Ave", 6, 0, Color.Pink, bank, 160, 80, 100, new int[] {12, 60, 180, 500, 700, 900}),
                   new Railroad("Pennsylvania Railroad", 5, 0, Color.Gray, bank, 200, 100),
                   new Land("St. James Place", 4, 0, Color.Orange, bank, 180, 90, 100, new int[] {14, 70, 200, 550, 750}),
-                  new CommunityChest("CommunityChest", 3, 0, Color.Gray),
+                  new CommunityChest("Community Chest", 3, 0, Color.Gray),
                   new Land("Tennessee Ave", 2, 0, Color.Orange, bank, 180, 90, 100, new int[] {14, 70, 200, 550, 750}),
                   new Land("New York Ave", 1, 0, Color.Orange, bank, 200, 100, 100, new int[] {16, 80, 220, 600, 800}),
                   new Tile("Free Parking", 0, 0, Color.Gray),
@@ -237,7 +275,16 @@ namespace Monopoly
                   new Land("Ventor Ave", 0, 7, Color.Yellow, bank, 260, 130, 150, new int[] {22, 110, 330, 800, 975, 1150}),
                   new Utility("Water Works", 0, 8, Color.Gray, bank, 150, 75),
                   new Land("Marvin Gardens", 0, 9, Color.Yellow, bank, 280, 140, 150, new int[] {24, 120, 360, 850, 1025, 1200}),
-                  new GoToJail("Go To Jail", 0, 10, Color.Gray)
+                  new GoToJail("Go To Jail", 0, 10, Color.Gray),
+                  new Land("Pacific Ave", 1, 10, Color.Green, bank, 300, 150, 200, new int[] {26, 130, 390, 900, 1100, 1275} ),
+                  new Land("North Carolina Ave", 2, 10, Color.Green, bank, 300, 150, 200, new int[] {26, 130, 390, 900, 1100, 1275} ),
+                  new CommunityChest("Community Chest", 3, 10, Color.Gray),
+                  new Land("Pennsylvania Ave", 4, 10, Color.Green, bank, 320, 160, 200, new int[] {28, 150, 450, 1000, 1200, 1400}),
+                  new Railroad("Short Line", 5, 10, Color.Gray, bank, 200, 100),
+                  new Chance("Chance", 6, 10, Color.Gray),
+                  new Land("Park Place", 7, 10, Color.Blue, bank, 350, 175, 200, new int[] {35, 175, 500, 1100, 1300, 1500}),
+                  new Tax("Luxury Tax", 8, 10, Color.Gray, 100),
+                  new Land("Boardwalk", 9, 10, Color.Blue, bank, 400, 200, 200, new int[] {50, 200, 600, 1400, 1700, 2000})
                 };
             }
 
