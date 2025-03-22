@@ -71,6 +71,21 @@ namespace Monopoly
             }
         }
 
+        class GoToJail : Tile
+        {
+            public GoToJail(String name, int row, int column, Color color)
+                : base(name, row, column, color)
+            {
+
+            }
+
+            public override void Land_On_Tile(Player player)
+            {
+                // player jailed = true
+                // player location set to (10, 0)
+            }
+        }
+
         class Tax : Tile
         {
             int taxAmount;
@@ -212,7 +227,17 @@ namespace Monopoly
                   new CommunityChest("CommunityChest", 3, 0, Color.Gray),
                   new Land("Tennessee Ave", 2, 0, Color.Orange, bank, 180, 90, 100, new int[] {14, 70, 200, 550, 750}),
                   new Land("New York Ave", 1, 0, Color.Orange, bank, 200, 100, 100, new int[] {16, 80, 220, 600, 800}),
-                  new Tile("Free Parking", 0, 0, Color.Gray)
+                  new Tile("Free Parking", 0, 0, Color.Gray),
+                  new Land("Kentucky Ave", 0, 1, Color.Red, bank, 220, 110, 150, new int[] {18, 90, 250, 700, 875, 1050}),
+                  new Chance("Chance", 0, 2, Color.Gray),
+                  new Land("Indiana Ave", 0, 3, Color.Red, bank, 220, 110, 150, new int[] {18, 90, 250, 700, 875, 1050}),
+                  new Land("Illinois Ave", 0, 4, Color.Red, bank, 240, 120, 150, new int[] {20, 100, 300, 750, 925, 1100}),
+                  new Railroad("B&O Railroad", 0, 5, Color.Gray, bank, 200, 100),
+                  new Land("Atlantic Ave", 0, 6, Color.Yellow, bank, 260, 130, 150, new int[] {22, 110, 330, 800, 975, 1150}),
+                  new Land("Ventor Ave", 0, 7, Color.Yellow, bank, 260, 130, 150, new int[] {22, 110, 330, 800, 975, 1150}),
+                  new Utility("Water Works", 0, 8, Color.Gray, bank, 150, 75),
+                  new Land("Marvin Gardens", 0, 9, Color.Yellow, bank, 280, 140, 150, new int[] {24, 120, 360, 850, 1025, 1200}),
+                  new GoToJail("Go To Jail", 0, 10, Color.Gray)
                 };
             }
 
