@@ -19,6 +19,7 @@ namespace Monopoly
         {
             NUM_OF_PLAYERS = 4;
             Player bank = new Player(99);
+            bank.money = 100000000;
             Board board = new Board(bank);
             GameManager gameManager = new GameManager(NUM_OF_PLAYERS, board);
             
@@ -27,6 +28,7 @@ namespace Monopoly
             SuspendLayout();
             Tile tile = new Tile("temp", 0, 0);
             this.tableLayoutPanel1.Controls.Add(gameManager.rollButton, 5, 5);
+            this.tableLayoutPanel1.Controls.Add(gameManager.PlayerInfoButton, 5, 4);
             for (int i = 0; i < board.tiles.Length; i++)
             {
                 tile = board.tiles[i];
@@ -341,6 +343,7 @@ namespace Monopoly
         {
            public Tile location;
            public int id;
+           public int money;
            public Player(int id)
             {
                 this.id = id;  
@@ -355,6 +358,8 @@ namespace Monopoly
             Random random;
             public Board board;
             public Button rollButton;
+            public Button PlayerInfoButton;
+
             public GameManager(int NUM_OF_PLAYERS, Board board)
             {
                 this.board = board;
@@ -365,13 +370,46 @@ namespace Monopoly
                 rollButton.Size = new Size(80, 80);
                 rollButton.BackColor = Color.Aquamarine;
 
+                PlayerInfoButton = new Button();                                    // Create a new button for player info
+                PlayerInfoButton.Text = "Player Info";                              // Button text
+                PlayerInfoButton.Click += new System.EventHandler(this.PlayerInfo); // Calls the PlayerInfo method when clicked 
+                PlayerInfoButton.Size = new Size(80, 30);                           // Size of button 
+                PlayerInfoButton.BackColor = Color.DarkGray;                        // Color of button
+                PlayerInfoButton.Dock = DockStyle.Bottom;                           // Dock button to bottom of cell to be right above roll button
+
                 players = new Player[NUM_OF_PLAYERS];
                 for (int i = 0; i < NUM_OF_PLAYERS; i++)
                 {
                     players[i] = new Player(i);
                     players[i].location = board.tiles[0];
-                    players[i].location.Land_On_Tile(players[i], this);
+                    players[i].money = 1500;                // set players starting money to game standard of $1500
+                    //players[i].location.Land_On_Tile(players[i], this);k
                 }
+            }
+
+
+            //TODO: NOT CURRENLTY WORKING. WORK IN PROGRESS
+            private void PlayerInfo(object sender, EventArgs e)
+            {
+                //display player info
+
+                Form popup = new Form();                                   // Create a new form for the player info UI popup
+                popup.Text = "Player Info";                                // Button text
+                popup.Size = new Size(800, 800);                           // Good size for player info, little smaller than board form
+                popup.StartPosition = FormStartPosition.CenterScreen;      // Center the form on the screen
+
+
+                TableLayoutPanel playerInfoTable = new TableLayoutPanel(); // Create a new table layout panel for the player info
+                playerInfoTable.Dock = DockStyle.Fill;                     // Dock the table layout panel to fill the form
+                playerInfoTable.RowCount = players.Length + 1;             // Set the row count to the number of players + 1 for the header
+                playerInfoTable.ColumnCount = 3;                           // Set the column count to 3 for player id, location, and money
+
+                Label currentplayer = new Label();                         // Create a new label for the player
+                currentplayer.Text = $"player {players[0].money}";         // Set the text of the label to the players money count
+
+                playerInfoTable.Controls.Add(currentplayer, 1, 2);         // Add the label to the table layout panel at row 0, column 0
+
+                popup.Show();
             }
             private void RollDice(object sender, EventArgs e)
             {
