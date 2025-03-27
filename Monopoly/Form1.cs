@@ -11,7 +11,6 @@ using System.Windows.Forms;
 
 namespace Monopoly
 {
-    
     public partial class Form1 : Form
     {
         public int NUM_OF_PLAYERS;
@@ -129,16 +128,13 @@ namespace Monopoly
                 : base(name, row, column, color)
             {
                 body.BackColor = Color.Green;
-                for (int i = 0; i < playerSlot.Length; i++)
-                {
-                    playerSlot[i].Visible = true;
-                }
             }
 
             public override void Land_On_Tile(Player player, GameManager gameManager)
             {
-                Console.WriteLine("Player " + player.id + " Landed on " + name + "!");
-                //bank pays player $200
+                Console.WriteLine("Player " + player.id + " Landed on " + name + "!" + " They earned a $200 bonus!");
+                player.money += 200;
+                Console.WriteLine(player.money);
             }
         }
 
@@ -344,9 +340,11 @@ namespace Monopoly
            public Tile location;
            public int id;
            public int money;
+            public bool isJailed;
            public Player(int id)
             {
                 this.id = id;  
+                isJailed = false;
             }
         }
 
@@ -380,6 +378,7 @@ namespace Monopoly
                 players = new Player[NUM_OF_PLAYERS];
                 for (int i = 0; i < NUM_OF_PLAYERS; i++)
                 {
+                    board.tiles[0].playerSlot[i].Visible = true;
                     players[i] = new Player(i);
                     players[i].location = board.tiles[0];
                     players[i].money = 1500;                // set players starting money to game standard of $1500
@@ -411,29 +410,55 @@ namespace Monopoly
 
                 popup.Show();
             }
+
+
+            int doublesCounter = 0;
             private void RollDice(object sender, EventArgs e)
             {
                 int currentIndex = Array.IndexOf(board.tiles, players[i].location);
-                int dice1 = random.Next(1, 7);
-                int dice2 = random.Next(1, 7);
+                int dice1 = random.Next(1, 3);
+                int dice2 = random.Next(1, 3);
+                
                 players[i].location.playerSlot[i].Visible = false;
-                int nextLocation = (currentIndex + dice1 + dice2) % 40;
+
+                int nextLocation = currentIndex + dice1 + dice2;
+                if (nextLocation >= board.tiles.Length)
+                {
+                    nextLocation = nextLocation % 40;
+                    players[i].money += 200;
+                    Console.WriteLine(players[i].money);
+                }
+
                 players[i].location = board.tiles[nextLocation];
                 players[i].location.Land_On_Tile(players[i], this);
                 players[i].location.playerSlot[i].Visible = true;
 
                 if (dice1 == dice2)
                 {
-                    return;
-                }
-                else
-                {
-                    i++;
-                    if (i == players.Length)
+                    doublesCounter++;
+                    Console.WriteLine("Player " + players[i].id + " rolled doubles! doubles counter: " + doublesCounter);
+                    if(doublesCounter == 3)
                     {
-                        i = 0;
+                        players[i].isJailed = true;
+                        players[i].location.playerSlot[i].Visible = false;
+                        players[i].location = board.tiles[10];
+                        players[i].location.playerSlot[i].Visible = true;
+                        Console.WriteLine("Player " + players[i].id + " was caught speeding!");
                     }
+                    else
+                    {
+                        return;
+                    }
+                   
                 }
+               
+                doublesCounter = 0;
+                i++;
+                if (i == players.Length)
+                {
+                    i = 0;
+                }
+               
             }
         }
     }
