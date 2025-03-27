@@ -16,7 +16,7 @@ namespace Monopoly
         public int NUM_OF_PLAYERS;
         public Form1()
         {
-            NUM_OF_PLAYERS = 4;
+            NUM_OF_PLAYERS = 2;
             Player bank = new Player(99);
             bank.money = 100000000;
             Board board = new Board(bank);
@@ -154,6 +154,7 @@ namespace Monopoly
                 player.location.playerSlot[player.id].Visible = false;
                 player.location = gameManager.board.tiles[10];
                 player.location.playerSlot[player.id].Visible = true;
+                player.isJailed = true;
             }
         }
 
@@ -340,12 +341,17 @@ namespace Monopoly
            public Tile location;
            public int id;
            public int money;
-            public bool isJailed;
+           public bool isJailed;
+           public int jailTimer; 
+           public bool bankrupt;
            public Player(int id)
             {
                 this.id = id;  
                 isJailed = false;
+                bankrupt = false;
             }
+
+
         }
 
 
@@ -416,11 +422,21 @@ namespace Monopoly
             private void RollDice(object sender, EventArgs e)
             {
                 int currentIndex = Array.IndexOf(board.tiles, players[i].location);
-                int dice1 = random.Next(1, 3);
-                int dice2 = random.Next(1, 3);
-                
-                players[i].location.playerSlot[i].Visible = false;
+                int dice1 = random.Next(1, 7);
+                int dice2 = random.Next(1, 7);
 
+                if (players[i].isJailed)
+                {
+                    jailRoll(players[i], dice1, dice2);
+                    i++;
+                    if (i == players.Length)
+                    {
+                        i = 0;
+                    }
+                    return;
+                }
+
+                players[i].location.playerSlot[i].Visible = false;
                 int nextLocation = currentIndex + dice1 + dice2;
                 if (nextLocation >= board.tiles.Length)
                 {
@@ -433,6 +449,7 @@ namespace Monopoly
                 players[i].location.Land_On_Tile(players[i], this);
                 players[i].location.playerSlot[i].Visible = true;
 
+                
                 if (dice1 == dice2)
                 {
                     doublesCounter++;
@@ -458,8 +475,36 @@ namespace Monopoly
                 {
                     i = 0;
                 }
-               
             }
+
+            void jailRoll(Player jailedPlayer, int dice1, int dice2)
+            {
+                jailedPlayer.jailTimer++;
+                if (dice1 == dice2)
+                {
+                    Console.WriteLine("Player " + jailedPlayer.id + " rolled doubles and broke out of jail!");
+                    jailedPlayer.isJailed = false;
+                    jailedPlayer.location.playerSlot[i].Visible = false;
+                    jailedPlayer.location = board.tiles[10 + dice1 + dice2];
+                    jailedPlayer.location.playerSlot[i].Visible = true;
+                    jailedPlayer.jailTimer++;
+                    return;
+                }
+                else if (jailedPlayer.jailTimer == 3)
+                {
+                    jailedPlayer.isJailed = false;
+                    jailedPlayer.jailTimer = 0;
+                    jailedPlayer.location.playerSlot[i].Visible = false;
+                    jailedPlayer.location = board.tiles[10 + dice1 + dice2];
+                    jailedPlayer.location.playerSlot[i].Visible = true;
+                    Console.WriteLine("Player " + jailedPlayer.id + " payed the 50$ fine (ADD THIS FEATURE) and is free.");
+                    //TODO: Pay $50 to leave jail
+                    return; 
+                }
+                
+                Console.WriteLine("Player " + jailedPlayer.id + " remains in jail: " + jailedPlayer.jailTimer);
+            }
+
         }
     }
 }
