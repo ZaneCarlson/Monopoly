@@ -28,6 +28,7 @@ namespace Monopoly
             Tile tile = new Tile("temp", 0, 0);
             this.tableLayoutPanel1.Controls.Add(gameManager.rollButton, 5, 5);
             this.tableLayoutPanel1.Controls.Add(gameManager.PlayerInfoButton, 5, 4);
+            this.tableLayoutPanel1.Controls.Add(gameManager.showDiceRoll, 5, 6);
             for (int i = 0; i < board.tiles.Length; i++)
             {
                 tile = board.tiles[i];
@@ -363,6 +364,7 @@ namespace Monopoly
             public Board board;
             public Button rollButton;
             public Button PlayerInfoButton;
+            public Label showDiceRoll; // 
 
             public GameManager(int NUM_OF_PLAYERS, Board board)
             {
@@ -373,6 +375,13 @@ namespace Monopoly
                 rollButton.Click += new System.EventHandler(this.RollDice);
                 rollButton.Size = new Size(80, 80);
                 rollButton.BackColor = Color.Aquamarine;
+
+
+                showDiceRoll = new Label();
+                showDiceRoll.Text = "";
+                showDiceRoll.Size = new Size(80, 50);
+                //showDiceRoll.BackColor = Color.DarkGray;
+
 
                 PlayerInfoButton = new Button();                                    // Create a new button for player info
                 PlayerInfoButton.Text = "Player Info";                              // Button text
@@ -424,6 +433,9 @@ namespace Monopoly
                 int currentIndex = Array.IndexOf(board.tiles, players[i].location);
                 int dice1 = random.Next(1, 7);
                 int dice2 = random.Next(1, 7);
+                int diceRolled = dice1 + dice2;
+
+                showDiceRoll.Text = "player #" + players[i].id + (System.Environment.NewLine) + "Dice: " + dice1 + (System.Environment.NewLine) + "Dice: " + dice2 + (System.Environment.NewLine) + "Total: " + diceRolled;
 
                 if (players[i].isJailed)
                 {
@@ -435,7 +447,7 @@ namespace Monopoly
                     }
                     return;
                 }
-
+                
                 players[i].location.playerSlot[i].Visible = false;
                 int nextLocation = currentIndex + dice1 + dice2;
                 if (nextLocation >= board.tiles.Length)
