@@ -119,7 +119,7 @@ namespace Monopoly
 
             public virtual void Land_On_Tile(Player player, GameManager gameManager)
             {
-                ;
+                Console.WriteLine("Player " + player.id + " Landed on " + name + "!");
             }
         }
 
@@ -532,10 +532,11 @@ namespace Monopoly
                 {
                     Console.WriteLine("Player " + jailedPlayer.id + " rolled doubles and broke out of jail!");
                     jailedPlayer.isJailed = false;
+                    jailedPlayer.jailTimer = 0; 
                     jailedPlayer.location.playerSlot[i].Visible = false;
                     jailedPlayer.location = board.tiles[10 + dice1 + dice2];
                     jailedPlayer.location.playerSlot[i].Visible = true;
-                    jailedPlayer.jailTimer++;
+                    
                     return;
                 }
                 else if (jailedPlayer.jailTimer == 3)
