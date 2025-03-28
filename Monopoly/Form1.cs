@@ -402,7 +402,7 @@ namespace Monopoly
             }
 
 
-            //TODO: NOT CURRENLTY WORKING. WORK IN PROGRESS
+            //TODO:  WORK IN PROGRESS
             private void PlayerInfo(object sender, EventArgs e)
             {
                 //display player info
@@ -413,19 +413,55 @@ namespace Monopoly
                 popup.StartPosition = FormStartPosition.CenterScreen;      // Center the form on the screen
 
 
+
                 TableLayoutPanel playerInfoTable = new TableLayoutPanel(); // Create a new table layout panel for the player info
+                playerInfoTable.RowStyles.Add(new RowStyle(SizeType.Absolute, 50));
                 playerInfoTable.Dock = DockStyle.Fill;                     // Dock the table layout panel to fill the form
-                playerInfoTable.RowCount = players.Length + 1;             // Set the row count to the number of players + 1 for the header
-                playerInfoTable.ColumnCount = 3;                           // Set the column count to 3 for player id, location, and money
+                playerInfoTable.RowCount = 10;             // Set the row count to the number of players + 1 for the header
+                playerInfoTable.ColumnCount = 10;                           // Set the column count to 3 for player id, location, and money
+               
 
-                Label currentplayer = new Label();                         // Create a new label for the player
-                currentplayer.Text = $"player {players[0].money}";         // Set the text of the label to the players money count
 
-                playerInfoTable.Controls.Add(currentplayer, 1, 2);         // Add the label to the table layout panel at row 0, column 0
+                playerInfoTable.Controls.Add(new Label() 
+                { 
 
+                    Text = $"Player:  {players[i].id}" ,
+                    Font = new Font("Arial",36, FontStyle.Bold)
+
+                }, 0, 0); // Add a label for the player id at row 0, column 0
+
+
+                popup.FormBorderStyle = FormBorderStyle.FixedDialog;
+                popup.ControlBox = false;
+
+                Label currentPlayerMonday = new Label();
+                Label currentPlayerProperty = new Label();
+
+                // Close the player UI form
+                Button Exit = new Button();
+                Exit.Text = "Exit";
+                playerInfoTable.Controls.Add(Exit, 10, 0);
+                Exit.Click += (s, ev) => { popup.Close(); };
+
+
+
+
+                // Label currentPlayerMonday = new Label();
+
+                // Label currentPlayerMonday = new Label();
+                //Label currentPlayerMonday = new Label();
+
+                // Label currentPlayerMonday = new Label();                         // Create a new label for the player
+                currentPlayerMonday.Text = $"player {players[0].money}";         // Set the text of the label to the players money count
+
+                playerInfoTable.Controls.Add(currentPlayerMonday, 1, 2);         // Add the label to the table layout panel at row 0, column 0
+
+                popup.Controls.Add(playerInfoTable);
                 popup.Show();
             }
 
+            
+             
 
             int doublesCounter = 0;
             private void RollDice(object sender, EventArgs e)
