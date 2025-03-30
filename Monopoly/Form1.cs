@@ -2,6 +2,7 @@
 using System.Collections.Generic;
 using System.ComponentModel;
 using System.Data;
+using System.Diagnostics;
 using System.Drawing;
 using System.Linq;
 using System.Runtime.InteropServices;
@@ -208,9 +209,9 @@ namespace Monopoly
 
         class Contract : Tile
         {
-            Player owner;
-            int price;
-            int mortgageValue;
+            public Player owner;               // I SET THIS TO PUBLIC
+            public int price;               // I SET THIS TO PUBLIC
+            public int mortgageValue;       // I SET THIS TO PUBLIC
             public Contract(String name, int row, int column, Color color, Player owner, int price, int mortgageValue)
                 : base(name, row, column, color)
             {
@@ -221,6 +222,7 @@ namespace Monopoly
                 footer.Text = "$" + price;
                 footer.Visible = true;
                 //Contract Constructor
+
             }
         }
 
@@ -234,11 +236,30 @@ namespace Monopoly
                 this.buildPrice = buildPrice;
                 this.incomes = incomes;
                 //Land Constructor
+                
             }
 
             public override void Land_On_Tile(Player player, GameManager gameManager)
             {
                 Console.WriteLine("Player " + player.id + " Landed on " + name + "!");
+
+
+                if (owner.id == 99)
+                {
+                    //player can buy land
+                    Console.WriteLine("owned by bank");
+                    Console.WriteLine(name);
+
+                    player.TempOwnedProperties.Add(this);
+                    gameManager.PlayerInfo(player, name);
+
+
+                }
+                else
+                {
+                    Console.WriteLine($"owned by player: {owner.id}");
+                }
+
                 //if owner == bank then let Player buy land.
                 //if player land != owner, then pay income to owner from passed in player.
             }
@@ -256,6 +277,23 @@ namespace Monopoly
             public override void Land_On_Tile(Player player, GameManager gameManager)
             {
                 Console.WriteLine("Player " + player.id + " Landed on " + name + "!");
+
+                if (owner.id == 99)
+                {
+                    //player can buy land
+                    Console.WriteLine("owned by bank");
+                    Console.WriteLine(name);
+
+                    player.TempOwnedProperties.Add(this);
+                    gameManager.PlayerInfo(player, name);
+
+
+                }
+                else
+                {
+                    Console.WriteLine($"owned by player: {owner.id}");
+                }
+
                 //if owner == bank then let Player buy Railroad.
                 //if player != owner then pay based on number of railroads owner owns
                 //formula for rent: 25 x 2^(n-1) where n = number of railroads owner owns.
@@ -273,6 +311,23 @@ namespace Monopoly
             public override void Land_On_Tile(Player player, GameManager gameManager)
             {
                 Console.WriteLine("Player " + player.id + " Landed on " + name + "!");
+
+                if (owner.id == 99)
+                {
+                    //player can buy land
+                    Console.WriteLine("owned by bank");
+                    Console.WriteLine(name);
+
+                    player.TempOwnedProperties.Add(this);
+                    gameManager.PlayerInfo(player, name);
+                    
+
+                }
+                else
+                {
+                    Console.WriteLine($"owned by player: {owner.id}");
+                }
+
                 //if owner == bank then let Player buy utility.
                 //if player != owner then pay based on number of utilities owner owns
                 //formula for rent: 4 x dice roll
@@ -345,7 +400,9 @@ namespace Monopoly
            public bool isJailed;
            public int jailTimer; 
            public bool bankrupt;
-           public Player(int id)
+           public List<Contract> ownedProperties = new List<Contract>();    // List of owned properties
+            public List<Contract> TempOwnedProperties = new List<Contract>(); 
+            public Player(int id)
             {
                 this.id = id;  
                 isJailed = false;
@@ -401,62 +458,367 @@ namespace Monopoly
                 }
             }
 
-
-            //TODO:  WORK IN PROGRESS
+            // Player Info Button when the button is pressed
             private void PlayerInfo(object sender, EventArgs e)
+            {
+                Player currentPlayer = players[i];
+                ShowPlayerInfo(currentPlayer, null);
+                
+            }
+
+            // Player Info Button that is trigged by player movement
+            public void PlayerInfo(Player player, string name)
+            {
+                ShowPlayerInfo(player, name);
+            }
+
+            // Player Interface UI
+            private void ShowPlayerInfo(Player player, string name)
             {
                 //display player info
 
+                //
                 Form popup = new Form();                                   // Create a new form for the player info UI popup
                 popup.Text = "Player Info";                                // Button text
-                popup.Size = new Size(800, 800);                           // Good size for player info, little smaller than board form
+                popup.Size = new Size(1000, 900);                           // Good size for player info, little smaller than board form
                 popup.StartPosition = FormStartPosition.CenterScreen;      // Center the form on the screen
-
-
-
-                TableLayoutPanel playerInfoTable = new TableLayoutPanel(); // Create a new table layout panel for the player info
-                playerInfoTable.RowStyles.Add(new RowStyle(SizeType.Absolute, 50));
-                playerInfoTable.Dock = DockStyle.Fill;                     // Dock the table layout panel to fill the form
-                playerInfoTable.RowCount = 10;             // Set the row count to the number of players + 1 for the header
-                playerInfoTable.ColumnCount = 10;                           // Set the column count to 3 for player id, location, and money
-               
-
-
-                playerInfoTable.Controls.Add(new Label() 
-                { 
-
-                    Text = $"Player:  {players[i].id}" ,
-                    Font = new Font("Arial",36, FontStyle.Bold)
-
-                }, 0, 0); // Add a label for the player id at row 0, column 0
-
-
                 popup.FormBorderStyle = FormBorderStyle.FixedDialog;
                 popup.ControlBox = false;
 
-                Label currentPlayerMonday = new Label();
-                Label currentPlayerProperty = new Label();
+                //
+                TableLayoutPanel playerInfoTable = new TableLayoutPanel(); // Create a new table layout panel for the player info
+                playerInfoTable.Dock = DockStyle.Fill;                     // Dock the table layout panel to fill the form
+                playerInfoTable.RowCount = 4;                              // Set the row count to the number of players + 1 for the header
+                playerInfoTable.ColumnCount = 3;                           // Set the column count to 3 for player id, location, and money
 
-                // Close the player UI form
+                //
+                playerInfoTable.ColumnStyles.Add(new ColumnStyle(SizeType.Percent, 33F));
+                playerInfoTable.ColumnStyles.Add(new ColumnStyle(SizeType.Percent, 34F));
+                playerInfoTable.ColumnStyles.Add(new ColumnStyle(SizeType.Percent, 33F));
+
+                // Add row heights
+                for (int r = 0; r < playerInfoTable.RowCount; r++){playerInfoTable.RowStyles.Add(new RowStyle(SizeType.Absolute, 60));}
+
+                //
+                Label playerID = new Label();                               // Create a new label for the player id
+                playerID.Text = $"Player: #{players[i].id}";                // Set the text of the label to the players id
+                playerID.Font = new Font("Arial", 30, FontStyle.Bold);      // Set the font of the label
+                playerID.Dock = DockStyle.Fill;                             // Dock the label to fill the cell
+                playerInfoTable.Controls.Add(playerID, 0, 0);               // Add the label to the table layout panel at row 0, column 0
+                playerInfoTable.SetColumnSpan(playerID, 2);                 // Set the column span of the label to 3     
+
+                // Button to close the player UI form
                 Button Exit = new Button();
                 Exit.Text = "Exit";
-                playerInfoTable.Controls.Add(Exit, 10, 0);
-                Exit.Click += (s, ev) => { popup.Close(); };
+                Exit.Dock = DockStyle.Fill;
+                Exit.Anchor = AnchorStyles.Top | AnchorStyles.Right;
+                Exit.Size = new Size(80, 40);                                // Adjust width & height
+
+                Exit.Font = new Font("Arial", 14, FontStyle.Bold);
+
+                Exit.Click += (s, ev) => 
+                {
+                    if (!string.IsNullOrEmpty(name))
+                    {
+                        DialogResult result = MessageBox.Show(
+                                                    "If you exit, you may not buy the Tile you are on?",
+                                                    "Are you sure you want to exit?",
+                                                    MessageBoxButtons.YesNo,
+                                                    MessageBoxIcon.Question
+                                                );
+                        if (result == DialogResult.Yes)
+                        {
+                            popup.Close();
+                        }
+                    }
+                    else
+                    {
+                        popup.Close();
+                    } 
+                };
+                
+                
+                playerInfoTable.Controls.Add(Exit, 2, 0);
+                
+
+
+
+                //
+                Label currentPlayerMoney = new Label();
+                currentPlayerMoney.Text = $"Balance: ${players[0].money}";  // Set the text of the label to the players money count
+                currentPlayerMoney.Font = new Font("Arial", 20, FontStyle.Bold);    // Set the font of the label
+                currentPlayerMoney.Dock = DockStyle.Fill;                           // Dock the label to fill the cell
+                currentPlayerMoney.TextAlign = ContentAlignment.MiddleLeft;         // Center the text in the label
+                playerInfoTable.SetColumnSpan(currentPlayerMoney, 2);               // Set the column span of the label to 3
+                playerInfoTable.Controls.Add(currentPlayerMoney, 0, 1);             // Add the label to the table layout panel at row 0, column 0
+
+
+                /* PAYMENT AND BANKRUPTCY BUTTONS*/
+                TableLayoutPanel actionButtons = new TableLayoutPanel();
+                actionButtons.ColumnCount = 2;
+                actionButtons.Dock = DockStyle.Fill;
+                actionButtons.ColumnStyles.Add(new ColumnStyle(SizeType.Percent, 50F));
+                actionButtons.ColumnStyles.Add(new ColumnStyle(SizeType.Percent, 50F));
+
+                Button paymentButton = new Button();
+                paymentButton.Text = "Payment";
+                paymentButton.Font = new Font("Arial", 14, FontStyle.Bold);
+                paymentButton.Dock = DockStyle.Fill;
+                paymentButton.Click += (s, ev) => MessageBox.Show("Payment clicked!");
+
+                Button bankruptcyButton = new Button();
+                bankruptcyButton.Text = "Bankruptcy";
+                bankruptcyButton.Font = new Font("Arial", 14, FontStyle.Bold);
+                bankruptcyButton.Dock = DockStyle.Fill;
+
+                bankruptcyButton.Click += (s, ev) => MessageBox.Show("Bankruptcy clicked!");
+                
+
+
+
+                actionButtons.Controls.Add(paymentButton, 0, 0);
+                actionButtons.Controls.Add(bankruptcyButton, 1, 0);
+                /* PAYMENT AND BANKRUPTCY BUTTONS END*/
+
+
+                /* PROPERIES SECTION */
+                // === PROPERTY SCROLLABLE PANEL ===
+                Panel scrollPanel = new Panel();
+                scrollPanel.Dock = DockStyle.Fill;
+                scrollPanel.AutoScroll = true;
+               
+
+                // === PROPERTY GROUPS DATA ===
+                var propertyGroups = new Dictionary<string, string[]>
+                    {
+                        { "Dark Purple", new[] { "Mediterranean Ave", "Baltic Ave" } }, 
+
+                        { "Light Blue", new[] { "Oriental Ave", "Vermont Ave", "Connecticut Ave" } },
+
+                        { "Pink", new[] { "St. Charles Place", "State Ave", "Virginia Ave" } },
+
+                        { "Orange", new[] { "St. James Place", "Tennessee Ave", "New York Ave" } },
+
+                        { "Red", new[] { "Kentucky Ave", "Indiana Ave", "Illinois Ave" } },
+
+                        { "Yellow", new[] { "Atlantic Ave", "Ventor Ave", "Marvin Gardens" } },
+
+                        { "Green", new[] { "Pacific Ave", "North Carolina Ave", "Pennsylvania Ave" } },
+
+                        { "Dark Blue", new[] { "Park Place", "Boardwalk" } },
+
+                        { "Railroads", new[] { "Reading Railroad", "Pennsylvania Railroad", "B&O Railroad", "Short Line" } },
+
+                        { "Utilities", new[] { "Electric Company", "Water Works" } }
+                    };
+
+                int yOffset = 10;
+                Dictionary<string, GroupBox> groupBoxMap = new Dictionary<string, GroupBox>();
+                foreach (var group in propertyGroups)
+                {
+                    GroupBox groupBox = new GroupBox();
+                    groupBox.Text = group.Key;
+                    groupBox.Font = new Font("Arial", 10, FontStyle.Bold);
+
+                    groupBox.Size = new Size(940, group.Value.Length * 40+ 30);
+
+                    groupBox.Location = new Point(20, yOffset);
+
+                    TableLayoutPanel table = new TableLayoutPanel();
+                    table.Dock = DockStyle.Fill;
+                    table.RowCount = group.Value.Length;
+                    for (int r = 0; r < table.RowCount; r++)
+                    {
+                        table.RowStyles.Add(new RowStyle(SizeType.Absolute, 40)); // Force exact row height
+                    }
+
+                    table.ColumnCount = 5;
+                    table.ColumnStyles.Add(new ColumnStyle(SizeType.Percent, 40F)); // Property label
+                    table.ColumnStyles.Add(new ColumnStyle(SizeType.Percent, 15F)); // Buy button
+                    table.ColumnStyles.Add(new ColumnStyle(SizeType.Percent, 15F)); // Sell button
+                    table.ColumnStyles.Add(new ColumnStyle(SizeType.Percent, 15F)); // House button
+                    table.ColumnStyles.Add(new ColumnStyle(SizeType.Percent, 15F)); // Hotel button
+
+                    int rowIndex = 0;
+                    foreach (string prop in group.Value)
+                    {
+                        Label propLabel = new Label();
+                        propLabel.Text = prop;
+                        propLabel.Dock = DockStyle.Fill;
+                        propLabel.TextAlign = ContentAlignment.MiddleLeft;
+                        propLabel.BorderStyle = BorderStyle.FixedSingle;
+                        propLabel.Visible = true; // For now all visible (later use ownership logic)
+
+                        Button buyButton = new Button();
+                        buyButton.Text = "Buy";
+                        buyButton.Dock = DockStyle.Fill;
+                        buyButton.Click += (s, ev) =>
+                        {
+                            // -->To buy the property that the player is on<--
+                            if (name != null) 
+                            {
+                                Contract TiletoBuy = player.TempOwnedProperties[0];
+                                int price = TiletoBuy.price;
+
+                                if (players[i].money >= price)
+                                {
+                                    players[i].money -= price;
+                                    player.ownedProperties.Add(TiletoBuy);
+                                    TiletoBuy.owner = player;
+                                    player.TempOwnedProperties.Clear();
+
+                                    MessageBox.Show($"Bought {prop} for ${price}");
+                                    popup.Close();
+                                }
+                                else
+                                {
+                                    MessageBox.Show("Not enough money to buy this property");
+                                }
+                            }
+
+                        };
+
+                        Button sellButton = new Button();
+                        sellButton.Text = "Sell";
+                        sellButton.Dock = DockStyle.Fill;
+                        sellButton.Click += (s, ev) => MessageBox.Show($"Sell clicked for {prop}");
+
+                        Button BuyHouse = new Button();
+                        BuyHouse.Text = "House";
+                        BuyHouse.Dock = DockStyle.Fill;
+                        BuyHouse.Click += (s, ev) =>
+                        {
+                   
+                        };
+
+
+
+                        Button Hotel = new Button();
+                        Hotel.Text = "Hotel";
+                        Hotel.Dock = DockStyle.Fill;
+                        Hotel.Click += (s, ev) => MessageBox.Show($"Hotel clicked for {prop}");
+
+                        
+
+                        table.Controls.Add(propLabel, 0, rowIndex);
+                        table.Controls.Add(buyButton, 1, rowIndex);
+                        table.Controls.Add(sellButton, 2, rowIndex);
+                        table.Controls.Add(BuyHouse, 3, rowIndex);
+                        table.Controls.Add(Hotel, 4, rowIndex);
+
+                        groupBoxMap[prop] = groupBox;
+
+                        rowIndex++;
+                    }
+
+                    groupBox.Controls.Add(table);
+
+                    groupBox.BackColor = Color.FromArgb(100, Color.Gray);
+                    DisableAllButtonsIn(groupBox);
+
+                    scrollPanel.Controls.Add(groupBox);
+
+                    
+
+                    yOffset += groupBox.Height + 10;
+                }
+
+                /* ENABLEs ROW OF CURRENT TILE*/
+                if (!string.IsNullOrEmpty(name) && groupBoxMap.ContainsKey(name))
+                {
+
+                    GroupBox targetGroup = groupBoxMap[name];
+
+                   
+                        foreach (Control ctrl in targetGroup.Controls)
+                        {
+
+                            if (ctrl is TableLayoutPanel table)
+                            {
+                                foreach (Control inner in table.Controls)
+                                {
+                                    if (inner is Label lbl && lbl.Text == name)
+                                    {
+                                        targetGroup.BackColor = Color.LightYellow; // visually highlight
+                                        EnableRowButtons(lbl, table);               // enable this row
+                                    }
+                                }
+                            }
+                        }
+                    
+                }
+
+                /* ENABLES ALL PROPERTIES OWNED BY THE PLAYER*/
+                foreach (var owned in player.ownedProperties)
+                {
+                    string ownedName = owned.name;
+
+                    if (groupBoxMap.ContainsKey(ownedName))
+                    {
+                        GroupBox ownedGroup = groupBoxMap[ownedName];
+
+                        foreach (Control ctrl in ownedGroup.Controls)
+                        {
+                            if (ctrl is TableLayoutPanel table)
+                            {
+                                foreach (Control inner in table.Controls)
+                                {
+                                    if (inner is Label lbl && lbl.Text == ownedName)
+                                    {
+                                        ownedGroup.BackColor = Color.Transparent;
+                                        EnableRowButtons(lbl, table);
+                                    }
+                                }
+                            }
+                        }
+                    }
+                }
 
 
 
 
-                // Label currentPlayerMonday = new Label();
+                /* PROPERIES SECTION END */
 
-                // Label currentPlayerMonday = new Label();
-                //Label currentPlayerMonday = new Label();
 
-                // Label currentPlayerMonday = new Label();                         // Create a new label for the player
-                currentPlayerMonday.Text = $"player {players[0].money}";         // Set the text of the label to the players money count
 
-                playerInfoTable.Controls.Add(currentPlayerMonday, 1, 2);         // Add the label to the table layout panel at row 0, column 0
+                // === MASTER LAYOUT ===
+                TableLayoutPanel mainLayout = new TableLayoutPanel();
+                mainLayout.Dock = DockStyle.Fill;
+                mainLayout.RowCount = 3;
+                mainLayout.ColumnCount = 2;
 
-                popup.Controls.Add(playerInfoTable);
+
+                // ***Set sizes for rows and columns** 
+                /* 
+                FOR ROWS:
+                Keep in mind this is a 2rows by column panel.
+                The top section is exactly 150 Pixels tall. 
+                The next secion fills 100% of the remaining space */
+                mainLayout.RowStyles.Add(new RowStyle(SizeType.Absolute, 150));     // Top section height, Row 0
+                mainLayout.RowStyles.Add(new RowStyle(SizeType.Absolute, 100));      // Bottom section fills remaining space, Row 1
+                mainLayout.RowStyles.Add(new RowStyle(SizeType.Percent, 100));      // Bottom section fills remaining space, Row 1
+
+                mainLayout.ColumnStyles.Add(new ColumnStyle(SizeType.Percent, 50)); // Left side (scrollPanel), column 0
+                mainLayout.ColumnStyles.Add(new ColumnStyle(SizeType.Percent, 50)); // Right side (empty for now), column 1
+
+                // Place the top section across both columns (header info, player id, balance and exit button)
+                mainLayout.Controls.Add(playerInfoTable, 0, 0);
+                mainLayout.SetColumnSpan(playerInfoTable, 2);
+
+                // Place scrollable property panel in the bottom-left
+                mainLayout.Controls.Add(scrollPanel, 0, 1);
+                mainLayout.SetColumnSpan(scrollPanel, 2);
+
+                mainLayout.Controls.Add(actionButtons, 0, 1);
+                mainLayout.SetColumnSpan(actionButtons, 2);
+
+
+                // Add everything to the popup form
+                popup.Controls.Add(mainLayout);
+
+
+                
+                //popup.Controls.Add(playerInfoTable);
                 popup.Show();
             }
 
@@ -552,6 +914,34 @@ namespace Monopoly
                 }
                 
                 Console.WriteLine("Player " + jailedPlayer.id + " remains in jail: " + jailedPlayer.jailTimer);
+            }
+
+            private void DisableAllButtonsIn(Control parent)
+            {
+                foreach (Control c in parent.Controls)
+                {
+                    if (c is Button button)
+                    {
+                        button.Enabled = false;
+                    }
+                    else
+                    {
+                        // Recursive check for nested containers like TableLayoutPanel
+                        DisableAllButtonsIn(c);
+                    }
+                }
+            }
+
+            private void EnableRowButtons(Label label, TableLayoutPanel table)
+            {
+                var pos = table.GetPositionFromControl(label);
+                int row = pos.Row;
+
+                for (int col = 1; col < table.ColumnCount; col++)
+                {
+                    Control btn = table.GetControlFromPosition(col, row);
+                    if (btn is Button button) button.Enabled = true;
+                }
             }
 
         }
