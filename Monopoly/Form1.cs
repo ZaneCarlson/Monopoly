@@ -361,7 +361,7 @@ namespace Monopoly
                   new Land("New Charles Ave", 9, 0, Color.Pink, bank, 140, 70, 100, new int[] {10, 50, 150, 450, 625, 750}),
                   new Utility("Electric Company", 8, 0, Color.Gray, bank, 150, 75),
                   new Land("State Ave", 7, 0, Color.Pink, bank, 140, 70, 100, new int[] {10, 50, 150, 450, 625, 750}),
-                  new Land("Virgina Ave", 6, 0, Color.Pink, bank, 160, 80, 100, new int[] {12, 60, 180, 500, 700, 900}),
+                  new Land("Virginia Ave", 6, 0, Color.Pink, bank, 160, 80, 100, new int[] {12, 60, 180, 500, 700, 900}),
                   new Railroad("Pennsylvania Railroad", 5, 0, Color.Gray, bank, 200, 100),
                   new Land("St. James Place", 4, 0, Color.Orange, bank, 180, 90, 100, new int[] {14, 70, 200, 550, 750}),
                   new CommunityChest("Community Chest", 3, 0, Color.Gray),
