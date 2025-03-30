@@ -250,7 +250,7 @@ namespace Monopoly
                     Console.WriteLine("owned by bank");
                     Console.WriteLine(name);
 
-                    player.TempOwnedProperties.Add(this);
+                    player.CanBuyProperty.Add(this);
                     gameManager.PlayerInfo(player, name);
 
 
@@ -284,7 +284,7 @@ namespace Monopoly
                     Console.WriteLine("owned by bank");
                     Console.WriteLine(name);
 
-                    player.TempOwnedProperties.Add(this);
+                    player.CanBuyProperty.Add(this);
                     gameManager.PlayerInfo(player, name);
 
 
@@ -318,7 +318,7 @@ namespace Monopoly
                     Console.WriteLine("owned by bank");
                     Console.WriteLine(name);
 
-                    player.TempOwnedProperties.Add(this);
+                    player.CanBuyProperty.Add(this);
                     gameManager.PlayerInfo(player, name);
                     
 
@@ -401,7 +401,7 @@ namespace Monopoly
            public int jailTimer; 
            public bool bankrupt;
            public List<Contract> ownedProperties = new List<Contract>();    // List of owned properties
-            public List<Contract> TempOwnedProperties = new List<Contract>(); 
+            public List<Contract> CanBuyProperty = new List<Contract>(); 
             public Player(int id)
             {
                 this.id = id;  
@@ -614,6 +614,7 @@ namespace Monopoly
 
                 int yOffset = 10;
                 Dictionary<string, GroupBox> groupBoxMap = new Dictionary<string, GroupBox>();
+
                 foreach (var group in propertyGroups)
                 {
                     GroupBox groupBox = new GroupBox();
@@ -657,7 +658,7 @@ namespace Monopoly
                             // -->To buy the property that the player is on<--
                             if (name != null) 
                             {
-                                Contract TiletoBuy = player.TempOwnedProperties[0];
+                                Contract TiletoBuy = player.CanBuyProperty[0];
                                 int price = TiletoBuy.price;
 
                                 if (players[i].money >= price)
@@ -665,7 +666,7 @@ namespace Monopoly
                                     players[i].money -= price;
                                     player.ownedProperties.Add(TiletoBuy);
                                     TiletoBuy.owner = player;
-                                    player.TempOwnedProperties.Clear();
+                                    player.CanBuyProperty.Clear();
 
                                     MessageBox.Show($"Bought {prop} for ${price}");
                                     popup.Close();
@@ -678,10 +679,10 @@ namespace Monopoly
 
                         };
 
-                        Button sellButton = new Button();
-                        sellButton.Text = "Sell";
-                        sellButton.Dock = DockStyle.Fill;
-                        sellButton.Click += (s, ev) => MessageBox.Show($"Sell clicked for {prop}");
+                        Button MortgageButton = new Button();
+                        MortgageButton.Text = "Mortgage";
+                        MortgageButton.Dock = DockStyle.Fill;
+                        MortgageButton.Click += (s, ev) => MessageBox.Show($"Sell clicked for {prop}");
 
                         Button BuyHouse = new Button();
                         BuyHouse.Text = "House";
@@ -691,20 +692,19 @@ namespace Monopoly
                    
                         };
 
-
-
-                        Button Hotel = new Button();
-                        Hotel.Text = "Hotel";
-                        Hotel.Dock = DockStyle.Fill;
-                        Hotel.Click += (s, ev) => MessageBox.Show($"Hotel clicked for {prop}");
+                        Button Sell = new Button();
+                        Sell.Text = "Sell";
+                        Sell.Dock = DockStyle.Fill;
+                        Sell.Click += (s, ev) => MessageBox.Show($"Hotel clicked for {prop}");
 
                         
 
                         table.Controls.Add(propLabel, 0, rowIndex);
                         table.Controls.Add(buyButton, 1, rowIndex);
-                        table.Controls.Add(sellButton, 2, rowIndex);
+                        table.Controls.Add(MortgageButton, 2, rowIndex);
                         table.Controls.Add(BuyHouse, 3, rowIndex);
-                        table.Controls.Add(Hotel, 4, rowIndex);
+                        table.Controls.Add(Sell, 4, rowIndex);
+                        
 
                         groupBoxMap[prop] = groupBox;
 
