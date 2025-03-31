@@ -18,36 +18,55 @@ namespace Monopoly
         public int selectPlayerCount()
         {
             Form popup = new Form();
-            popup.Text = "Select Number of Players for Monopoly!";
-            popup.Size = new Size(500, 500);
+            popup.Text = "Player Selection!";
+            popup.Size = new Size(400, 200);
             popup.StartPosition = FormStartPosition.CenterScreen;
             popup.FormBorderStyle = FormBorderStyle.FixedDialog;
             popup.ControlBox = false;
 
-            //popup.ShowInTaskbar = false;
-
-            int selectedCount = 0;
-
             TableLayoutPanel layout = new TableLayoutPanel();
             layout.Dock = DockStyle.Fill;
-            layout.RowCount = 1;
+            layout.RowCount = 2;
             layout.ColumnCount = 3;
+
+            layout.RowStyles.Add(new RowStyle(SizeType.Absolute, 50));
+            layout.RowStyles.Add(new RowStyle(SizeType.Percent, 100));
 
             layout.ColumnStyles.Add(new ColumnStyle(SizeType.Percent, 33F));
             layout.ColumnStyles.Add(new ColumnStyle(SizeType.Percent, 34F));
             layout.ColumnStyles.Add(new ColumnStyle(SizeType.Percent, 33F));
 
-            Button btn2 = new Button() { Text = "2 Players", Dock = DockStyle.Fill };
-            Button btn3 = new Button() { Text = "3 Players", Dock = DockStyle.Fill };
-            Button btn4 = new Button() { Text = "4 Players", Dock = DockStyle.Fill };
+            Label description = new Label();
+            description.Text = "Select Number of Players for Monopoly!";
+            description.Font = new Font("Arial", 13, FontStyle.Bold);
+            description.Dock = DockStyle.Fill;
+            layout.Controls.Add(description, 0, 0);
+            layout.SetColumnSpan(description, 3);
+
+            int selectedCount = 0;
+
+          
+
+            Button btn2 = new Button() 
+            { 
+                Text = "2 Players", Dock = DockStyle.Fill 
+            };
+            Button btn3 = new Button() 
+            {
+                Text = "3 Players", Dock = DockStyle.Fill 
+            };
+            Button btn4 = new Button() 
+            {
+                Text = "4 Players", Dock = DockStyle.Fill 
+            };
 
             btn2.Click += (s, e) => { selectedCount = 2; popup.Close(); };
             btn3.Click += (s, e) => { selectedCount = 3; popup.Close(); };
             btn4.Click += (s, e) => { selectedCount = 4; popup.Close(); };
 
-            layout.Controls.Add(btn2, 0, 0);
-            layout.Controls.Add(btn3, 1, 0);
-            layout.Controls.Add(btn4, 2, 0);
+            layout.Controls.Add(btn2, 0, 1);
+            layout.Controls.Add(btn3, 1, 1);
+            layout.Controls.Add(btn4, 2, 1);
             popup.Controls.Add(layout);
 
             popup.ShowDialog(); // modal — halts until user picks
