@@ -252,7 +252,7 @@ namespace Monopoly
 
                     player.CanBuyProperty.Add(this);
                     gameManager.PlayerInfo(player, name);
-
+                    
 
                 }
                 else
@@ -286,7 +286,7 @@ namespace Monopoly
 
                     player.CanBuyProperty.Add(this);
                     gameManager.PlayerInfo(player, name);
-
+                    
 
                 }
                 else
@@ -318,9 +318,13 @@ namespace Monopoly
                     Console.WriteLine("owned by bank");
                     Console.WriteLine(name);
 
+                    
+
                     player.CanBuyProperty.Add(this);
                     gameManager.PlayerInfo(player, name);
+
                     
+
 
                 }
                 else
@@ -390,7 +394,6 @@ namespace Monopoly
                   new Land("Boardwalk", 9, 10, Color.Blue, bank, 400, 200, 200, new int[] {50, 200, 600, 1400, 1700, 2000})
                 };
             }
-           
         }
 
         class Player
@@ -480,7 +483,8 @@ namespace Monopoly
             {
                 //display player info
 
-                
+                rollButton.Enabled = false;
+                PlayerInfoButton.Enabled = false;
 
                 //
                 Form popup = new Form();                                   // Create a new form for the player info UI popup
@@ -528,18 +532,25 @@ namespace Monopoly
                         if (!string.IsNullOrEmpty(name))
                         {
                             DialogResult result = MessageBox.Show(
-                                                        "If you exit, you may not buy the Tile you are on?",
-                                                        "Are you sure you want to exit?",
+                                                        "Are you sure? This will end your turn",
+                                                        "NOTICE",
                                                         MessageBoxButtons.YesNo,
                                                         MessageBoxIcon.Question
                                                     );
                             if (result == DialogResult.Yes)
                             {
+                                PlayerInfoButton.Enabled = true;
+                                rollButton.Enabled = true;
+                                player.CanBuyProperty.Clear();
+
                                 popup.Close();
                             }
                         }
                         else
                         {
+                            PlayerInfoButton.Enabled = true;
+                            rollButton.Enabled = true;
+                            player.CanBuyProperty.Clear();
                             popup.Close();
                         }
                     };
@@ -607,11 +618,12 @@ namespace Monopoly
                 // === PROPERTY GROUPS DATA ===
                 var propertyGroups = new Dictionary<string, string[]>
                     {
-                        { "Dark Purple", new[] { "Mediterranean Ave", "Baltic Ave" } }, 
+                         { "Dark Purple", new[] { "Mediterranian Ave", "Baltic Ave" }
+    },
 
                         { "Light Blue", new[] { "Oriental Ave", "Vermont Ave", "Connecticut Ave" } },
 
-                        { "Pink", new[] { "St. Charles Place", "State Ave", "Virginia Ave" } },
+                        { "Pink", new[] { "New Charles Ave", "State Ave", "Virginia Ave" } },
 
                         { "Orange", new[] { "St. James Place", "Tennessee Ave", "New York Ave" } },
 
@@ -626,7 +638,9 @@ namespace Monopoly
                         { "Railroads", new[] { "Reading Railroad", "Pennsylvania Railroad", "B&O Railroad", "Short Line" } },
 
                         { "Utilities", new[] { "Electric Company", "Water Works" } }
-                    };
+
+        
+                 };
 
                 int yOffset = 10;
                 Dictionary<string, GroupBox> groupBoxMap = new Dictionary<string, GroupBox>();
@@ -672,26 +686,32 @@ namespace Monopoly
                         buyButton.Click += (s, ev) =>
                         {
                             // -->To buy the property that the player is on<--
-                            if (name != null) 
+                            if (name != null && name == prop) 
                             {
                                 Contract TiletoBuy = player.CanBuyProperty[0];
                                 int price = TiletoBuy.price;
-
-                                if (players[i].money >= price)
+                                
+                                if(TiletoBuy.owner.id != players[i].id) // Make sure the player does not already own the property already
                                 {
-                                    players[i].money -= price;
-                                    player.ownedProperties.Add(TiletoBuy);
-                                    TiletoBuy.owner = player;
+                                    if (players[i].money >= price)
+                                    {
+                                        players[i].money -= price;
+                                        player.ownedProperties.Add(TiletoBuy);
+                                        TiletoBuy.owner = player;
+                                        
+                                        buyButton.Enabled = false;
+
+                                        MessageBox.Show($"Bought {prop} for ${price}");
+                                        
+                                    }
+                                    else
+                                    {
+                                        MessageBox.Show("Not enough money to buy this property");
+                                    }
                                     player.CanBuyProperty.Clear();
-
-                                    MessageBox.Show($"Bought {prop} for ${price}");
-                                    popup.Close();
-                                }
-                                else
-                                {
-                                    MessageBox.Show("Not enough money to buy this property");
                                 }
                             }
+                            
 
                         };
 
@@ -713,7 +733,6 @@ namespace Monopoly
                         Sell.Dock = DockStyle.Fill;
                         Sell.Click += (s, ev) => MessageBox.Show($"Hotel clicked for {prop}");
 
-                        
 
                         table.Controls.Add(propLabel, 0, rowIndex);
                         table.Controls.Add(buyButton, 1, rowIndex);
@@ -733,9 +752,6 @@ namespace Monopoly
                     DisableAllButtonsIn(groupBox);
 
                     scrollPanel.Controls.Add(groupBox);
-
-                    
-
                     yOffset += groupBox.Height + 10;
                 }
 
@@ -832,8 +848,6 @@ namespace Monopoly
                 // Add everything to the popup form
                 popup.Controls.Add(mainLayout);
 
-
-                
                 //popup.Controls.Add(playerInfoTable);
                 popup.Show();
             }
