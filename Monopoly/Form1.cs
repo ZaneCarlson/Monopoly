@@ -539,6 +539,7 @@ namespace Monopoly
                             {
                                 PlayerInfoButton.Enabled = true;
                                 rollButton.Enabled = true;
+                                player.CanBuyProperty.Clear();
 
                                 popup.Close();
                             }
@@ -547,6 +548,7 @@ namespace Monopoly
                         {
                             PlayerInfoButton.Enabled = true;
                             rollButton.Enabled = true;
+                            player.CanBuyProperty.Clear();
                             popup.Close();
                         }
                     };
@@ -669,26 +671,32 @@ namespace Monopoly
                         buyButton.Click += (s, ev) =>
                         {
                             // -->To buy the property that the player is on<--
-                            if (name != null) 
+                            if (name != null && name == prop) 
                             {
                                 Contract TiletoBuy = player.CanBuyProperty[0];
                                 int price = TiletoBuy.price;
-
-                                if (players[i].money >= price)
+                                
+                                if(TiletoBuy.owner.id != players[i].id) // Make sure the player does not already own the property already
                                 {
-                                    players[i].money -= price;
-                                    player.ownedProperties.Add(TiletoBuy);
-                                    TiletoBuy.owner = player;
+                                    if (players[i].money >= price)
+                                    {
+                                        players[i].money -= price;
+                                        player.ownedProperties.Add(TiletoBuy);
+                                        TiletoBuy.owner = player;
+                                        
+                                        buyButton.Enabled = false;
+
+                                        MessageBox.Show($"Bought {prop} for ${price}");
+                                        
+                                    }
+                                    else
+                                    {
+                                        MessageBox.Show("Not enough money to buy this property");
+                                    }
                                     player.CanBuyProperty.Clear();
-                                    buyButton.Enabled = false;
-
-                                    MessageBox.Show($"Bought {prop} for ${price}");
-                                }
-                                else
-                                {
-                                    MessageBox.Show("Not enough money to buy this property");
                                 }
                             }
+                            
 
                         };
 
