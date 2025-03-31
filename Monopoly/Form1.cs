@@ -29,6 +29,7 @@ namespace Monopoly
             Tile tile = new Tile("temp", 0, 0);
             this.tableLayoutPanel1.Controls.Add(gameManager.rollButton, 5, 5);
             this.tableLayoutPanel1.Controls.Add(gameManager.PlayerInfoButton, 5, 4);
+            this.tableLayoutPanel1.Controls.Add(gameManager.endTurnButton, 5, 3);
             this.tableLayoutPanel1.Controls.Add(gameManager.showDiceRoll, 5, 6);
             for (int i = 0; i < board.tiles.Length; i++)
             {
@@ -176,6 +177,7 @@ namespace Monopoly
             {
                 Console.WriteLine("Player " + player.id + " Landed on " + name + "!");
                 //passed in player pays bank the tax amount
+                gameManager.pay(player, gameManager.board.bank , taxAmount);
             }
         }
 
@@ -342,6 +344,7 @@ namespace Monopoly
         class Board
         {
             public Tile[] tiles;
+            public Player bank;
 
             public Board(Player bank)
             {
@@ -351,6 +354,7 @@ namespace Monopoly
                  *
                  * 
                  */
+                this.bank = bank;
                 tiles = new Tile[]
                 { new GO("GO", 10, 10, Color.Green),
                   new Land("Mediterranian Ave", 10, 9, Color.Indigo , bank, 60, 30, 50, new int[] {2, 10, 30, 90, 160, 250}),
@@ -426,8 +430,10 @@ namespace Monopoly
             public Board board;
             public Button rollButton;
             public Button PlayerInfoButton;
+            public Button endTurnButton;
             public Label showDiceRoll; // 
             int doublesCounter = 0;
+            int dice1, dice2;
 
             public GameManager(int NUM_OF_PLAYERS, Board board)
             {
@@ -445,6 +451,24 @@ namespace Monopoly
                 showDiceRoll.Size = new Size(80, 50);
                 //showDiceRoll.BackColor = Color.DarkGray;
 
+
+                endTurnButton = new Button();                                    // Create a new button for player info
+                endTurnButton.Text = "End Turn";                                 // Button text
+                endTurnButton.Size = new Size(80, 30);                           // Size of button 
+                endTurnButton.BackColor = Color.DarkGray;                        // Color of button
+                endTurnButton.Dock = DockStyle.Bottom;                              // Dock button to bottom of cell to be right above roll button
+                endTurnButton.Click += (s, ev) => 
+                {
+                    doublesCounter = 0;
+                    i++;
+                    if (i == players.Length)
+                    {
+                        i = 0;
+                    }
+                    endTurnButton.Enabled = false;
+                    rollButton.Enabled = true;
+                };
+                endTurnButton.Enabled = false;
 
                 PlayerInfoButton = new Button();                                    // Create a new button for player info
                 PlayerInfoButton.Text = "Player Info";                              // Button text
@@ -482,9 +506,12 @@ namespace Monopoly
             private void ShowPlayerInfo(Player player, string name, bool paying)
             {
                 //display player info
+                bool[] buttonStates = { endTurnButton.Enabled, rollButton.Enabled, PlayerInfoButton.Enabled };
 
+                endTurnButton.Enabled = false;
                 rollButton.Enabled = false;
                 PlayerInfoButton.Enabled = false;
+
 
                 //
                 Form popup = new Form();                                   // Create a new form for the player info UI popup
@@ -529,30 +556,16 @@ namespace Monopoly
 
                     Exit.Click += (s, ev) =>
                     {
-                        if (!string.IsNullOrEmpty(name))
+                        endTurnButton.Enabled = buttonStates[0];
+                        rollButton.Enabled = buttonStates[1];
+                        PlayerInfoButton.Enabled = buttonStates[2];
+                        if (dice1 == dice2)
                         {
-                            DialogResult result = MessageBox.Show(
-                                                        "Are you sure? This will end your turn",
-                                                        "NOTICE",
-                                                        MessageBoxButtons.YesNo,
-                                                        MessageBoxIcon.Question
-                                                    );
-                            if (result == DialogResult.Yes)
-                            {
-                                PlayerInfoButton.Enabled = true;
-                                rollButton.Enabled = true;
-                                player.CanBuyProperty.Clear();
-
-                                popup.Close();
-                            }
-                        }
-                        else
-                        {
-                            PlayerInfoButton.Enabled = true;
+                            endTurnButton.Enabled = false;
                             rollButton.Enabled = true;
-                            player.CanBuyProperty.Clear();
-                            popup.Close();
                         }
+                        player.CanBuyProperty.Clear();
+                        popup.Close();
                     };
                     playerInfoTable.Controls.Add(Exit, 2, 0);
                 }
@@ -594,6 +607,14 @@ namespace Monopoly
                             player.money -= payment;
                             payToPlayer.money += payment;
                             DialogResult notEnoughMoney = MessageBox.Show($"Player {player.id} paid ${payment} to Player {payToPlayer.id}");
+                            endTurnButton.Enabled = buttonStates[0];
+                            rollButton.Enabled = buttonStates[1];
+                            PlayerInfoButton.Enabled = buttonStates[2];
+                            if(dice1 == dice2)
+                            {
+                                endTurnButton.Enabled = false;
+                                rollButton.Enabled = true;
+                            }
                             popup.Close();
                         }
                     };
@@ -702,13 +723,12 @@ namespace Monopoly
                                         buyButton.Enabled = false;
 
                                         MessageBox.Show($"Bought {prop} for ${price}");
-                                        
+                                        player.CanBuyProperty.Clear();
                                     }
                                     else
                                     {
                                         MessageBox.Show("Not enough money to buy this property");
                                     }
-                                    player.CanBuyProperty.Clear();
                                 }
                             }
                             
@@ -865,8 +885,8 @@ namespace Monopoly
             private void RollDice(object sender, EventArgs e)
             {
                 int currentIndex = Array.IndexOf(board.tiles, players[i].location);
-                int dice1 = random.Next(1, 7);
-                int dice2 = random.Next(1, 7);
+                dice1 = random.Next(1, 7);
+                dice2 = random.Next(1, 7);
                 int diceRolled = dice1 + dice2;
 
                 showDiceRoll.Text = "player #" + players[i].id + (System.Environment.NewLine) + "Dice: " + dice1 + (System.Environment.NewLine) + "Dice: " + dice2 + (System.Environment.NewLine) + "Total: " + diceRolled;
@@ -874,11 +894,8 @@ namespace Monopoly
                 if (players[i].isJailed)
                 {
                     jailRoll(players[i], dice1, dice2);
-                    i++;
-                    if (i == players.Length)
-                    {
-                        i = 0;
-                    }
+                    rollButton.Enabled = false;
+                    endTurnButton.Enabled = true;
                     return;
                 }
                 
@@ -892,10 +909,11 @@ namespace Monopoly
                 }
 
                 players[i].location = board.tiles[nextLocation];
-                players[i].location.Land_On_Tile(players[i], this);
+                rollButton.Enabled = false;
+                endTurnButton.Enabled = true;
+                
                 players[i].location.playerSlot[i].Visible = true;
 
-                
                 if (dice1 == dice2)
                 {
                     doublesCounter++;
@@ -910,18 +928,19 @@ namespace Monopoly
                     }
                     else
                     {
+                        rollButton.Enabled = true;
+                        endTurnButton.Enabled = false;
+                        players[i].location.Land_On_Tile(players[i], this);
                         return;
                     }
                    
                 }
 
+
                 //pay(players[0], players[1], 100);  //tests a hardcoded payment
-                doublesCounter = 0;
-                i++;
-                if (i == players.Length)
-                {
-                    i = 0;
-                }
+                players[i].location.Land_On_Tile(players[i], this);
+                endTurnButton.Enabled = true;
+                rollButton.Enabled = false;
             }
 
             void jailRoll(Player jailedPlayer, int dice1, int dice2)
