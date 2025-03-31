@@ -334,6 +334,7 @@ namespace Monopoly
                 //if two owned then 10 x dice roll
             }
         }
+
         class Board
         {
             public Tile[] tiles;
@@ -412,7 +413,6 @@ namespace Monopoly
 
         }
 
-
         class GameManager
         {
             public Player[] players;
@@ -422,6 +422,7 @@ namespace Monopoly
             public Button rollButton;
             public Button PlayerInfoButton;
             public Label showDiceRoll; // 
+            int doublesCounter = 0;
 
             public GameManager(int NUM_OF_PLAYERS, Board board)
             {
@@ -462,20 +463,22 @@ namespace Monopoly
             private void PlayerInfo(object sender, EventArgs e)
             {
                 Player currentPlayer = players[i];
-                ShowPlayerInfo(currentPlayer, null);
+                ShowPlayerInfo(currentPlayer, null, false);
                 
             }
 
             // Player Info Button that is trigged by player movement
             public void PlayerInfo(Player player, string name)
             {
-                ShowPlayerInfo(player, name);
+                ShowPlayerInfo(player, name, false);
             }
 
             // Player Interface UI
-            private void ShowPlayerInfo(Player player, string name)
+            private void ShowPlayerInfo(Player player, string name, bool paying)
             {
                 //display player info
+
+                
 
                 //
                 Form popup = new Form();                                   // Create a new form for the player info UI popup
@@ -508,37 +511,39 @@ namespace Monopoly
                 playerInfoTable.SetColumnSpan(playerID, 2);                 // Set the column span of the label to 3     
 
                 // Button to close the player UI form
-                Button Exit = new Button();
-                Exit.Text = "Exit";
-                Exit.Dock = DockStyle.Fill;
-                Exit.Anchor = AnchorStyles.Top | AnchorStyles.Right;
-                Exit.Size = new Size(80, 40);                                // Adjust width & height
-
-                Exit.Font = new Font("Arial", 14, FontStyle.Bold);
-
-                Exit.Click += (s, ev) => 
+                if (!paying)
                 {
-                    if (!string.IsNullOrEmpty(name))
+                    Button Exit = new Button();
+                    Exit.Text = "Exit";
+                    Exit.Dock = DockStyle.Fill;
+                    Exit.Anchor = AnchorStyles.Top | AnchorStyles.Right;
+                    Exit.Size = new Size(80, 40);                                // Adjust width & height
+
+                    Exit.Font = new Font("Arial", 14, FontStyle.Bold);
+
+                    Exit.Click += (s, ev) =>
                     {
-                        DialogResult result = MessageBox.Show(
-                                                    "If you exit, you may not buy the Tile you are on?",
-                                                    "Are you sure you want to exit?",
-                                                    MessageBoxButtons.YesNo,
-                                                    MessageBoxIcon.Question
-                                                );
-                        if (result == DialogResult.Yes)
+                        if (!string.IsNullOrEmpty(name))
+                        {
+                            DialogResult result = MessageBox.Show(
+                                                        "If you exit, you may not buy the Tile you are on?",
+                                                        "Are you sure you want to exit?",
+                                                        MessageBoxButtons.YesNo,
+                                                        MessageBoxIcon.Question
+                                                    );
+                            if (result == DialogResult.Yes)
+                            {
+                                popup.Close();
+                            }
+                        }
+                        else
                         {
                             popup.Close();
                         }
-                    }
-                    else
-                    {
-                        popup.Close();
-                    } 
-                };
+                    };
+                    playerInfoTable.Controls.Add(Exit, 2, 0);
+                }
                 
-                
-                playerInfoTable.Controls.Add(Exit, 2, 0);
                 
 
 
@@ -555,29 +560,25 @@ namespace Monopoly
 
                 /* PAYMENT AND BANKRUPTCY BUTTONS*/
                 TableLayoutPanel actionButtons = new TableLayoutPanel();
-                actionButtons.ColumnCount = 2;
-                actionButtons.Dock = DockStyle.Fill;
-                actionButtons.ColumnStyles.Add(new ColumnStyle(SizeType.Percent, 50F));
-                actionButtons.ColumnStyles.Add(new ColumnStyle(SizeType.Percent, 50F));
-
-                Button paymentButton = new Button();
-                paymentButton.Text = "Payment";
-                paymentButton.Font = new Font("Arial", 14, FontStyle.Bold);
-                paymentButton.Dock = DockStyle.Fill;
-                paymentButton.Click += (s, ev) => MessageBox.Show("Payment clicked!");
-
-                Button bankruptcyButton = new Button();
-                bankruptcyButton.Text = "Bankruptcy";
-                bankruptcyButton.Font = new Font("Arial", 14, FontStyle.Bold);
-                bankruptcyButton.Dock = DockStyle.Fill;
-
-                bankruptcyButton.Click += (s, ev) => MessageBox.Show("Bankruptcy clicked!");
-                
-
-
-
-                actionButtons.Controls.Add(paymentButton, 0, 0);
-                actionButtons.Controls.Add(bankruptcyButton, 1, 0);
+                if (paying)
+                {
+                    actionButtons.ColumnCount = 2;
+                    actionButtons.Dock = DockStyle.Fill;
+                    actionButtons.ColumnStyles.Add(new ColumnStyle(SizeType.Percent, 50F));
+                    actionButtons.ColumnStyles.Add(new ColumnStyle(SizeType.Percent, 50F));
+                    Button paymentButton = new Button();
+                    paymentButton.Text = "Payment";
+                    paymentButton.Font = new Font("Arial", 14, FontStyle.Bold);
+                    paymentButton.Dock = DockStyle.Fill;
+                    paymentButton.Click += (s, ev) => MessageBox.Show("Payment clicked!");
+                    Button bankruptcyButton = new Button();
+                    bankruptcyButton.Text = "Bankruptcy";
+                    bankruptcyButton.Font = new Font("Arial", 14, FontStyle.Bold);
+                    bankruptcyButton.Dock = DockStyle.Fill;
+                    bankruptcyButton.Click += (s, ev) => MessageBox.Show("Bankruptcy clicked!");
+                    actionButtons.Controls.Add(paymentButton, 0, 0);
+                    actionButtons.Controls.Add(bankruptcyButton, 1, 0);
+                }
                 /* PAYMENT AND BANKRUPTCY BUTTONS END*/
 
 
@@ -689,7 +690,7 @@ namespace Monopoly
                         BuyHouse.Dock = DockStyle.Fill;
                         BuyHouse.Click += (s, ev) =>
                         {
-                   
+                        
                         };
 
                         Button Sell = new Button();
@@ -822,10 +823,14 @@ namespace Monopoly
                 popup.Show();
             }
 
-            
+            public void pay(Player payingPlayer, Player payToPlayer, int payment_amount)
+            {
+                ShowPlayerInfo(payingPlayer, null, true);
+            }
              
 
-            int doublesCounter = 0;
+
+            
             private void RollDice(object sender, EventArgs e)
             {
                 int currentIndex = Array.IndexOf(board.tiles, players[i].location);
