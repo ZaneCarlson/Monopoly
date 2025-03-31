@@ -462,6 +462,8 @@ namespace Monopoly
         class GameManager
         {
             public Player[] players;
+            public Player payToPlayer;
+            public int payment;
             int i = 0;
             Random random;
             public Board board;
@@ -551,7 +553,7 @@ namespace Monopoly
 
                 //
                 Label playerID = new Label();                               // Create a new label for the player id
-                playerID.Text = $"Player: #{players[i].id}";                // Set the text of the label to the players id
+                playerID.Text = $"Player: #{player.id}";                // Set the text of the label to the players id
                 playerID.Font = new Font("Arial", 30, FontStyle.Bold);      // Set the font of the label
                 playerID.Dock = DockStyle.Fill;                             // Dock the label to fill the cell
                 playerInfoTable.Controls.Add(playerID, 0, 0);               // Add the label to the table layout panel at row 0, column 0
@@ -604,7 +606,7 @@ namespace Monopoly
 
                 //
                 Label currentPlayerMoney = new Label();
-                currentPlayerMoney.Text = $"Balance: ${players[0].money}";  // Set the text of the label to the players money count
+                currentPlayerMoney.Text = $"Balance: ${player.money}";  // Set the text of the label to the players money count
                 currentPlayerMoney.Font = new Font("Arial", 20, FontStyle.Bold);    // Set the font of the label
                 currentPlayerMoney.Dock = DockStyle.Fill;                           // Dock the label to fill the cell
                 currentPlayerMoney.TextAlign = ContentAlignment.MiddleLeft;         // Center the text in the label
@@ -624,7 +626,20 @@ namespace Monopoly
                     paymentButton.Text = "Payment";
                     paymentButton.Font = new Font("Arial", 14, FontStyle.Bold);
                     paymentButton.Dock = DockStyle.Fill;
-                    paymentButton.Click += (s, ev) => MessageBox.Show("Payment clicked!");
+                    paymentButton.Click += (s, ev) => 
+                    { 
+                        if(player.money < payment)
+                        {
+                            DialogResult notEnoughMoney = MessageBox.Show("not enough money! Sell houses, mortgage properties, or declare bankruptcy.");
+                        }
+                        else
+                        {
+                            player.money -= payment;
+                            payToPlayer.money += payment;
+                            DialogResult notEnoughMoney = MessageBox.Show($"Player {player.id} paid ${payment} to Player {payToPlayer.id}");
+                            popup.Close();
+                        }
+                    };
                     Button bankruptcyButton = new Button();
                     bankruptcyButton.Text = "Bankruptcy";
                     bankruptcyButton.Font = new Font("Arial", 14, FontStyle.Bold);
@@ -882,6 +897,8 @@ namespace Monopoly
 
             public void pay(Player payingPlayer, Player payToPlayer, int payment_amount)
             {
+                this.payToPlayer = payToPlayer;
+                this.payment = payment_amount;
                 ShowPlayerInfo(payingPlayer, null, true);
             }
              
@@ -940,7 +957,8 @@ namespace Monopoly
                     }
                    
                 }
-               
+
+                //pay(players[0], players[1], 100);  //tests a hardcoded payment
                 doublesCounter = 0;
                 i++;
                 if (i == players.Length)
