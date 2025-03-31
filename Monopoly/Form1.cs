@@ -13,11 +13,73 @@ using System.Windows.Forms;
 namespace Monopoly
 {
     public partial class Form1 : Form
-    {
+    {   
         public int NUM_OF_PLAYERS;
+        public int selectPlayerCount()
+        {
+            Form popup = new Form();
+            popup.Text = "Player Selection!";
+            popup.Size = new Size(400, 200);
+            popup.StartPosition = FormStartPosition.CenterScreen;
+            popup.FormBorderStyle = FormBorderStyle.FixedDialog;
+            popup.ControlBox = false;
+
+            TableLayoutPanel layout = new TableLayoutPanel();
+            layout.Dock = DockStyle.Fill;
+            layout.RowCount = 2;
+            layout.ColumnCount = 3;
+
+            layout.RowStyles.Add(new RowStyle(SizeType.Absolute, 50));
+            layout.RowStyles.Add(new RowStyle(SizeType.Percent, 100));
+
+            layout.ColumnStyles.Add(new ColumnStyle(SizeType.Percent, 33F));
+            layout.ColumnStyles.Add(new ColumnStyle(SizeType.Percent, 34F));
+            layout.ColumnStyles.Add(new ColumnStyle(SizeType.Percent, 33F));
+
+            Label description = new Label();
+            description.Text = "Select Number of Players for Monopoly!";
+            description.Font = new Font("Arial", 13, FontStyle.Bold);
+            description.Dock = DockStyle.Fill;
+            layout.Controls.Add(description, 0, 0);
+            layout.SetColumnSpan(description, 3);
+
+            int selectedCount = 0;
+
+          
+
+            Button btn2 = new Button() 
+            { 
+                Text = "2 Players", Dock = DockStyle.Fill 
+            };
+            Button btn3 = new Button() 
+            {
+                Text = "3 Players", Dock = DockStyle.Fill 
+            };
+            Button btn4 = new Button() 
+            {
+                Text = "4 Players", Dock = DockStyle.Fill 
+            };
+
+            btn2.Click += (s, e) => { selectedCount = 2; popup.Close(); };
+            btn3.Click += (s, e) => { selectedCount = 3; popup.Close(); };
+            btn4.Click += (s, e) => { selectedCount = 4; popup.Close(); };
+
+            layout.Controls.Add(btn2, 0, 1);
+            layout.Controls.Add(btn3, 1, 1);
+            layout.Controls.Add(btn4, 2, 1);
+            popup.Controls.Add(layout);
+
+            popup.ShowDialog(); // modal — halts until user picks
+
+            return selectedCount;
+
+        }
         public Form1()
         {
-            NUM_OF_PLAYERS = 2;
+            
+            NUM_OF_PLAYERS = selectPlayerCount();   // Select number of players with popup
+            //NUM_OF_PLAYERS = 2;                   // hard code the number of players
+
             Player bank = new Player(99);
             bank.money = 100000000;
             Board board = new Board(bank);
