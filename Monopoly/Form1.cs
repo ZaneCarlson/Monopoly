@@ -553,14 +553,19 @@ namespace Monopoly
                 {
                     doublesCounter = 0;
                     i++;
-                    while (players[i].bankrupt == true)
-                    {
-                        i++;
-                    }
                     if (i == players.Length)
                     {
                         i = 0;
                     }
+                    while (players[i].bankrupt == true)
+                    {
+                        i++;
+                        if (i == players.Length)
+                        {
+                            i = 0;
+                        }
+                    }
+                   
                     endTurnButton.Enabled = false;
                     rollButton.Enabled = true;
                 };
@@ -589,7 +594,6 @@ namespace Monopoly
             {
                 Player currentPlayer = players[i];
                 ShowPlayerInfo(currentPlayer, null, false);
-
             }
 
             // Player Info Button that is trigged by player movement
@@ -775,17 +779,28 @@ namespace Monopoly
 
                 foreach (var group in propertyGroups)
                 {
+
+                    // Find the subset of properties that are visible to the player. onwed properties or can buy properties
+                    var visibleProps = group.Value
+                        .Where(prop =>
+                        player.CanBuyProperty.Any(c => c.name == prop)
+                        || player.ownedProperties.Any(o => o.name == prop)
+                        ).ToArray();
+                    if (visibleProps.Length == 0)
+                    {
+                        continue; // Skip this group if no properties are visible
+                    }
+
+                    // Create the group box for this property group
                     GroupBox groupBox = new GroupBox();
                     groupBox.Text = group.Key;
                     groupBox.Font = new Font("Arial", 10, FontStyle.Bold);
-
-                    groupBox.Size = new Size(940, group.Value.Length * 40 + 30);
-
+                    groupBox.Size = new Size(940, visibleProps.Length * 40 + 30);
                     groupBox.Location = new Point(20, yOffset);
 
                     TableLayoutPanel table = new TableLayoutPanel();
                     table.Dock = DockStyle.Fill;
-                    table.RowCount = group.Value.Length;
+                    table.RowCount = visibleProps.Length;
                     for (int r = 0; r < table.RowCount; r++)
                     {
                         table.RowStyles.Add(new RowStyle(SizeType.Absolute, 40)); // Force exact row height
@@ -799,8 +814,11 @@ namespace Monopoly
                     table.ColumnStyles.Add(new ColumnStyle(SizeType.Percent, 15F)); // Hotel button
 
                     int rowIndex = 0;
-                    foreach (string prop in group.Value)
+                    foreach (var prop in visibleProps)
                     {
+                        bool isBuyable = player.CanBuyProperty.Any(c => c.name == prop);
+                        bool isOwned = player.ownedProperties.Any(o => o.name == prop);
+
                         Label propLabel = new Label();
                         propLabel.Text = prop;
                         propLabel.Dock = DockStyle.Fill;
