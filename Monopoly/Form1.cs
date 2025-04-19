@@ -273,9 +273,10 @@ namespace Monopoly
 
         class Contract : Tile
         {
-            public Player owner;               // I SET THIS TO PUBLIC
-            public int price;               // I SET THIS TO PUBLIC
-            public int mortgageValue;       // I SET THIS TO PUBLIC
+            public Player owner;           
+            public int price;               
+            public int mortgageValue;       
+            public string contractType;
             public Contract(String name, int row, int column, Color color, Player owner, int price, int mortgageValue)
                 : base(name, row, column, color)
             {
@@ -294,11 +295,14 @@ namespace Monopoly
         {
             int buildPrice;
             int[] incomes;
+            int rent;
             public Land(String name, int row, int column, Color color, Player owner, int price, int mortgageValue, int buildPrice, int[] incomes)
                 :base(name, row, column, color, owner, price, mortgageValue)
             {
                 this.buildPrice = buildPrice;
                 this.incomes = incomes;
+                this.rent = incomes[0];
+                this.contractType = "Land";
                 //Land Constructor
                 
             }
@@ -319,6 +323,10 @@ namespace Monopoly
                     
 
                 }
+                else if (player.id != owner.id)
+                {
+                    gameManager.pay(player, owner, rent);
+                }
                 else
                 {
                     Console.WriteLine($"owned by player: {owner.id}");
@@ -335,7 +343,7 @@ namespace Monopoly
             public Railroad(String name, int row, int column, Color color, Player owner, int price, int mortgageValue)
                 : base(name, row, column, color, owner, price, mortgageValue)
             {
-                
+                this.contractType = "Railroad";
             }
 
             public override void Land_On_Tile(Player player, GameManager gameManager)
@@ -350,8 +358,15 @@ namespace Monopoly
 
                     player.CanBuyProperty.Add(this);
                     gameManager.PlayerInfo(player, name);
-                    
 
+
+                }
+                else if (player.id != owner.id)
+                {
+                    Console.WriteLine(owner.numOfRailroads);
+                    
+                    int rent = income * (int)Math.Pow(2, owner.numOfRailroads - 1);
+                    gameManager.pay(player, owner, rent);
                 }
                 else
                 {
@@ -369,7 +384,7 @@ namespace Monopoly
             public Utility(String name, int row, int column, Color color, Player owner, int price, int mortgageValue)
                 : base(name, row, column, color, owner, price, mortgageValue)
             {
-                
+                this.contractType = "Utility";
             }
 
             public override void Land_On_Tile(Player player, GameManager gameManager)
@@ -387,9 +402,19 @@ namespace Monopoly
                     player.CanBuyProperty.Add(this);
                     gameManager.PlayerInfo(player, name);
 
-                    
-
-
+                }
+                else if (player.id != owner.id)
+                {
+                    int rent;
+                    if(owner.numOfUtil == 1)
+                    {
+                        rent = (4 * (gameManager.dice1 + gameManager.dice2));
+                    }
+                    else
+                    {
+                        rent = (10 * (gameManager.dice1 + gameManager.dice2));
+                    }
+                    gameManager.pay(player, owner, rent);
                 }
                 else
                 {
@@ -413,7 +438,6 @@ namespace Monopoly
                 /* Tile Constructor(NAME, ROW, COLUMN, COLOR)
                  * Tax  Constructor(NAME, ROW, COLUMN, COLOR, TAX_AMOUNT)
                  * Land Constructor(NAME, ROW, COLUMN, COLOR, PLAYER, PRICE, MORTGAGE, BUILD_PRICE, INCOMES[])
-                 *
                  * 
                  */
                 this.bank = bank;
@@ -470,6 +494,8 @@ namespace Monopoly
            public bool isJailed;
            public int jailTimer; 
            public bool bankrupt;
+           public int numOfRailroads;
+           public int numOfUtil;
            public List<Contract> ownedProperties = new List<Contract>();    // List of owned properties
             public List<Contract> CanBuyProperty = new List<Contract>(); 
             public Player(int id)
@@ -477,6 +503,8 @@ namespace Monopoly
                 this.id = id;  
                 isJailed = false;
                 bankrupt = false;
+                numOfRailroads = 0;
+                numOfUtil = 0;
             }
 
 
@@ -493,13 +521,15 @@ namespace Monopoly
             public Button rollButton;
             public Button PlayerInfoButton;
             public Button endTurnButton;
-            public Label showDiceRoll; // 
+            public Label showDiceRoll;
             int doublesCounter = 0;
-            int dice1, dice2;
+            public int dice1, dice2;
+            int remainingPlayers;
 
             public GameManager(int NUM_OF_PLAYERS, Board board)
             {
                 this.board = board;
+                this.remainingPlayers = NUM_OF_PLAYERS;
                 random = new Random();
                 rollButton = new Button();
                 rollButton.Text = "Roll Dice";
@@ -519,10 +549,14 @@ namespace Monopoly
                 endTurnButton.Size = new Size(80, 30);                           // Size of button 
                 endTurnButton.BackColor = Color.DarkGray;                        // Color of button
                 endTurnButton.Dock = DockStyle.Bottom;                              // Dock button to bottom of cell to be right above roll button
-                endTurnButton.Click += (s, ev) => 
+                endTurnButton.Click += (s, ev) =>
                 {
                     doublesCounter = 0;
                     i++;
+                    while (players[i].bankrupt == true)
+                    {
+                        i++;
+                    }
                     if (i == players.Length)
                     {
                         i = 0;
@@ -555,7 +589,7 @@ namespace Monopoly
             {
                 Player currentPlayer = players[i];
                 ShowPlayerInfo(currentPlayer, null, false);
-                
+
             }
 
             // Player Info Button that is trigged by player movement
@@ -595,7 +629,7 @@ namespace Monopoly
                 playerInfoTable.ColumnStyles.Add(new ColumnStyle(SizeType.Percent, 33F));
 
                 // Add row heights
-                for (int r = 0; r < playerInfoTable.RowCount; r++){playerInfoTable.RowStyles.Add(new RowStyle(SizeType.Absolute, 60));}
+                for (int r = 0; r < playerInfoTable.RowCount; r++) { playerInfoTable.RowStyles.Add(new RowStyle(SizeType.Absolute, 60)); }
 
                 //
                 Label playerID = new Label();                               // Create a new label for the player id
@@ -631,8 +665,8 @@ namespace Monopoly
                     };
                     playerInfoTable.Controls.Add(Exit, 2, 0);
                 }
-                
-                
+
+
 
 
 
@@ -650,6 +684,7 @@ namespace Monopoly
                 TableLayoutPanel actionButtons = new TableLayoutPanel();
                 if (paying)
                 {
+
                     actionButtons.ColumnCount = 2;
                     actionButtons.Dock = DockStyle.Fill;
                     actionButtons.ColumnStyles.Add(new ColumnStyle(SizeType.Percent, 50F));
@@ -658,9 +693,9 @@ namespace Monopoly
                     paymentButton.Text = "Payment";
                     paymentButton.Font = new Font("Arial", 14, FontStyle.Bold);
                     paymentButton.Dock = DockStyle.Fill;
-                    paymentButton.Click += (s, ev) => 
-                    { 
-                        if(player.money < payment)
+                    paymentButton.Click += (s, ev) =>
+                    {
+                        if (player.money < payment)
                         {
                             DialogResult notEnoughMoney = MessageBox.Show("not enough money! Sell houses, mortgage properties, or declare bankruptcy.");
                         }
@@ -668,11 +703,11 @@ namespace Monopoly
                         {
                             player.money -= payment;
                             payToPlayer.money += payment;
-                            DialogResult notEnoughMoney = MessageBox.Show($"Player {player.id} paid ${payment} to Player {payToPlayer.id}");
+                            DialogResult PaymentConfirm = MessageBox.Show($"Player {player.id} paid ${payment} to Player {payToPlayer.id}");
                             endTurnButton.Enabled = buttonStates[0];
                             rollButton.Enabled = buttonStates[1];
                             PlayerInfoButton.Enabled = buttonStates[2];
-                            if(dice1 == dice2)
+                            if (dice1 == dice2)
                             {
                                 endTurnButton.Enabled = false;
                                 rollButton.Enabled = true;
@@ -684,7 +719,17 @@ namespace Monopoly
                     bankruptcyButton.Text = "Bankruptcy";
                     bankruptcyButton.Font = new Font("Arial", 14, FontStyle.Bold);
                     bankruptcyButton.Dock = DockStyle.Fill;
-                    bankruptcyButton.Click += (s, ev) => MessageBox.Show("Bankruptcy clicked!");
+                    bankruptcyButton.Click += (s, ev) =>
+                    {
+                        player.bankrupt = true;
+                        remainingPlayers--;
+                        giveAssets(player, payToPlayer);
+                        if (remainingPlayers == 1)
+                        {
+                            endGame();
+                        }
+                        MessageBox.Show("Bankruptcy clicked!");
+                    };
                     actionButtons.Controls.Add(paymentButton, 0, 0);
                     actionButtons.Controls.Add(bankruptcyButton, 1, 0);
                 }
@@ -696,12 +741,12 @@ namespace Monopoly
                 Panel scrollPanel = new Panel();
                 scrollPanel.Dock = DockStyle.Fill;
                 scrollPanel.AutoScroll = true;
-               
+
 
                 // === PROPERTY GROUPS DATA ===
                 var propertyGroups = new Dictionary<string, string[]>
                     {
-                         { "Dark Purple", new[] { "Mediterranian Ave", "Baltic Ave" }
+                        { "Dark Purple", new[] { "Mediterranian Ave", "Baltic Ave" }
     },
 
                         { "Light Blue", new[] { "Oriental Ave", "Vermont Ave", "Connecticut Ave" } },
@@ -722,7 +767,7 @@ namespace Monopoly
 
                         { "Utilities", new[] { "Electric Company", "Water Works" } }
 
-        
+
                  };
 
                 int yOffset = 10;
@@ -734,7 +779,7 @@ namespace Monopoly
                     groupBox.Text = group.Key;
                     groupBox.Font = new Font("Arial", 10, FontStyle.Bold);
 
-                    groupBox.Size = new Size(940, group.Value.Length * 40+ 30);
+                    groupBox.Size = new Size(940, group.Value.Length * 40 + 30);
 
                     groupBox.Location = new Point(20, yOffset);
 
@@ -769,19 +814,28 @@ namespace Monopoly
                         buyButton.Click += (s, ev) =>
                         {
                             // -->To buy the property that the player is on<--
-                            if (name != null && name == prop) 
+                            if (name != null && name == prop)
                             {
                                 Contract TiletoBuy = player.CanBuyProperty[0];
                                 int price = TiletoBuy.price;
-                                
-                                if(TiletoBuy.owner.id != players[i].id) // Make sure the player does not already own the property already
+
+                                if (TiletoBuy.owner.id != players[i].id) // Make sure the player does not already own the property already
                                 {
                                     if (players[i].money >= price)
                                     {
                                         players[i].money -= price;
                                         player.ownedProperties.Add(TiletoBuy);
                                         TiletoBuy.owner = player;
-                                        
+                                        if (TiletoBuy.contractType == "Railroad")
+                                        {
+                                            player.numOfRailroads++;
+                                        }
+                                        else if (TiletoBuy.contractType == "Utility")
+                                        {
+                                            player.numOfUtil++;
+                                        }
+
+
                                         buyButton.Enabled = false;
 
                                         MessageBox.Show($"Bought {prop} for ${price}");
@@ -793,7 +847,7 @@ namespace Monopoly
                                     }
                                 }
                             }
-                            
+
 
                         };
 
@@ -807,7 +861,7 @@ namespace Monopoly
                         BuyHouse.Dock = DockStyle.Fill;
                         BuyHouse.Click += (s, ev) =>
                         {
-                        
+
                         };
 
                         Button Sell = new Button();
@@ -821,7 +875,7 @@ namespace Monopoly
                         table.Controls.Add(MortgageButton, 2, rowIndex);
                         table.Controls.Add(BuyHouse, 3, rowIndex);
                         table.Controls.Add(Sell, 4, rowIndex);
-                        
+
 
                         groupBoxMap[prop] = groupBox;
 
@@ -843,23 +897,23 @@ namespace Monopoly
 
                     GroupBox targetGroup = groupBoxMap[name];
 
-                   
-                        foreach (Control ctrl in targetGroup.Controls)
-                        {
 
-                            if (ctrl is TableLayoutPanel table)
+                    foreach (Control ctrl in targetGroup.Controls)
+                    {
+
+                        if (ctrl is TableLayoutPanel table)
+                        {
+                            foreach (Control inner in table.Controls)
                             {
-                                foreach (Control inner in table.Controls)
+                                if (inner is Label lbl && lbl.Text == name)
                                 {
-                                    if (inner is Label lbl && lbl.Text == name)
-                                    {
-                                        targetGroup.BackColor = Color.LightYellow; // visually highlight
-                                        EnableRowButtons(lbl, table);               // enable this row
-                                    }
+                                    targetGroup.BackColor = Color.LightYellow; // visually highlight
+                                    EnableRowButtons(lbl, table);               // enable this row
                                 }
                             }
                         }
-                    
+                    }
+
                 }
 
                 /* ENABLES ALL PROPERTIES OWNED BY THE PLAYER*/
@@ -940,15 +994,16 @@ namespace Monopoly
                 this.payment = payment_amount;
                 ShowPlayerInfo(payingPlayer, null, true);
             }
-             
 
 
-            
+
+
             private void RollDice(object sender, EventArgs e)
             {
                 int currentIndex = Array.IndexOf(board.tiles, players[i].location);
                 dice1 = random.Next(1, 7);
                 dice2 = random.Next(1, 7);
+
                 int diceRolled = dice1 + dice2;
 
                 showDiceRoll.Text = "player #" + players[i].id + (System.Environment.NewLine) + "Dice: " + dice1 + (System.Environment.NewLine) + "Dice: " + dice2 + (System.Environment.NewLine) + "Total: " + diceRolled;
@@ -960,7 +1015,7 @@ namespace Monopoly
                     endTurnButton.Enabled = true;
                     return;
                 }
-                
+
                 players[i].location.playerSlot[i].Visible = false;
                 int nextLocation = currentIndex + dice1 + dice2;
                 if (nextLocation >= board.tiles.Length)
@@ -973,14 +1028,14 @@ namespace Monopoly
                 players[i].location = board.tiles[nextLocation];
                 rollButton.Enabled = false;
                 endTurnButton.Enabled = true;
-                
+
                 players[i].location.playerSlot[i].Visible = true;
 
                 if (dice1 == dice2)
                 {
                     doublesCounter++;
                     Console.WriteLine("Player " + players[i].id + " rolled doubles! doubles counter: " + doublesCounter);
-                    if(doublesCounter == 3)
+                    if (doublesCounter == 3)
                     {
                         players[i].isJailed = true;
                         players[i].location.playerSlot[i].Visible = false;
@@ -995,7 +1050,7 @@ namespace Monopoly
                         players[i].location.Land_On_Tile(players[i], this);
                         return;
                     }
-                   
+
                 }
 
 
@@ -1012,11 +1067,11 @@ namespace Monopoly
                 {
                     Console.WriteLine("Player " + jailedPlayer.id + " rolled doubles and broke out of jail!");
                     jailedPlayer.isJailed = false;
-                    jailedPlayer.jailTimer = 0; 
+                    jailedPlayer.jailTimer = 0;
                     jailedPlayer.location.playerSlot[i].Visible = false;
                     jailedPlayer.location = board.tiles[10 + dice1 + dice2];
                     jailedPlayer.location.playerSlot[i].Visible = true;
-                    
+
                     return;
                 }
                 else if (jailedPlayer.jailTimer == 3)
@@ -1028,10 +1083,31 @@ namespace Monopoly
                     jailedPlayer.location.playerSlot[i].Visible = true;
                     Console.WriteLine("Player " + jailedPlayer.id + " payed the 50$ fine (ADD THIS FEATURE) and is free.");
                     //TODO: Pay $50 to leave jail
-                    return; 
+                    return;
                 }
-                
+
                 Console.WriteLine("Player " + jailedPlayer.id + " remains in jail: " + jailedPlayer.jailTimer);
+            }
+
+            private void giveAssets(Player bankruptPlayer, Player receivingPlayer)
+            {
+                // give money
+                receivingPlayer.money += bankruptPlayer.money;
+
+                // give property
+                for (int j = 0; j < bankruptPlayer.ownedProperties.Count; j++)
+                {
+                    bankruptPlayer.ownedProperties[j].owner = receivingPlayer;
+                    receivingPlayer.ownedProperties.Append(bankruptPlayer.ownedProperties[j]);
+                    //MAKE SURE THESE PROPERTIES ARE CONSIDERED FOR MONOPOLIES
+                }
+
+                // give jail card
+            }
+
+            private void endGame()
+            {
+
             }
 
             private void DisableAllButtonsIn(Control parent)
