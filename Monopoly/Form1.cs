@@ -671,23 +671,48 @@ namespace Monopoly
                 }
 
 
+               
 
 
 
                 //
                 Label currentPlayerMoney = new Label();
-                currentPlayerMoney.Text = $"Balance: ${player.money}";  // Set the text of the label to the players money count
-                currentPlayerMoney.Font = new Font("Arial", 20, FontStyle.Bold);    // Set the font of the label
+                currentPlayerMoney.Text = $"Balance: ${player.money}";              // Set the text of the label to the players money count
+                currentPlayerMoney.Font = new Font("Arial", 18, FontStyle.Bold);    // Set the font of the label
                 currentPlayerMoney.Dock = DockStyle.Fill;                           // Dock the label to fill the cell
                 currentPlayerMoney.TextAlign = ContentAlignment.MiddleLeft;         // Center the text in the label
                 playerInfoTable.SetColumnSpan(currentPlayerMoney, 2);               // Set the column span of the label to 3
                 playerInfoTable.Controls.Add(currentPlayerMoney, 0, 1);             // Add the label to the table layout panel at row 0, column 0
+
+                if (paying)
+                {
+
+                    if (payToPlayer.id == 99)
+                    {
+                        currentPlayerMoney.Text = $"Balance: ${player.money}\nOwed: ${payment} to Bank";
+                    }
+                    else
+                    {
+                        currentPlayerMoney.Text = $"Balance: ${player.money} \nOwed: ${payment} to player# {payToPlayer.id}";
+                    }
+
+                }
+                else
+                {
+                    currentPlayerMoney.Text = $"Balance: ${player.money}";
+
+                }
+
+
 
 
                 /* PAYMENT AND BANKRUPTCY BUTTONS*/
                 TableLayoutPanel actionButtons = new TableLayoutPanel();
                 if (paying)
                 {
+                    
+
+
 
                     actionButtons.ColumnCount = 2;
                     actionButtons.Dock = DockStyle.Fill;
@@ -734,6 +759,11 @@ namespace Monopoly
                         }
                         MessageBox.Show("Bankruptcy clicked!");
                     };
+
+                    
+
+                
+
                     actionButtons.Controls.Add(paymentButton, 0, 0);
                     actionButtons.Controls.Add(bankruptcyButton, 1, 0);
                 }
@@ -824,11 +854,20 @@ namespace Monopoly
                         propLabel.Dock = DockStyle.Fill;
                         propLabel.TextAlign = ContentAlignment.MiddleLeft;
                         propLabel.BorderStyle = BorderStyle.FixedSingle;
-                        propLabel.Visible = true; // For now all visible (later use ownership logic)
+                        propLabel.Visible = true; // For now all visible (later use ownership logic)76yu
 
                         Button buyButton = new Button();
                         buyButton.Text = "Buy";
                         buyButton.Dock = DockStyle.Fill;
+                        if(isBuyable && !isOwned)
+                        {
+                            buyButton.Enabled = isBuyable && !isOwned; // Enable only if the property is buyable and not owned
+                        }
+                        else
+                        {
+                            buyButton.Enabled = false;
+                        }
+                        
                         buyButton.Click += (s, ev) =>
                         {
                             // -->To buy the property that the player is on<--
@@ -903,7 +942,7 @@ namespace Monopoly
                     groupBox.Controls.Add(table);
 
                     groupBox.BackColor = Color.FromArgb(100, Color.Gray);
-                    DisableAllButtonsIn(groupBox);
+                    //DisableAllButtonsIn(groupBox);
 
                     scrollPanel.Controls.Add(groupBox);
                     yOffset += groupBox.Height + 10;
