@@ -751,7 +751,7 @@ namespace Monopoly
                 var propertyGroups = new Dictionary<string, string[]>
                     {
                         { "Dark Purple", new[] { "Mediterranian Ave", "Baltic Ave" }
-    },
+},
 
                         { "Light Blue", new[] { "Oriental Ave", "Vermont Ave", "Connecticut Ave" } },
 
