@@ -6,6 +6,7 @@ using System.Diagnostics;
 using System.Drawing;
 using System.Linq;
 using System.Runtime.InteropServices;
+using System.Security.Policy;
 using System.Text;
 using System.Threading.Tasks;
 using System.Windows.Forms;
@@ -293,16 +294,20 @@ namespace Monopoly
 
         class Land : Contract
         {
-            int buildPrice;
-            int[] incomes;
-            int rent;
+            public int buildPrice;
+            public int[] incomes;
+            public int rent;
+            public bool hasMonopoly;
+            public Color color;
             public Land(String name, int row, int column, Color color, Player owner, int price, int mortgageValue, int buildPrice, int[] incomes)
                 :base(name, row, column, color, owner, price, mortgageValue)
             {
+                this.color = color;
                 this.buildPrice = buildPrice;
                 this.incomes = incomes;
-                this.rent = incomes[0];
+                this.rent = 0;
                 this.contractType = "Land";
+                this.hasMonopoly = false;
                 //Land Constructor
                 
             }
@@ -325,7 +330,11 @@ namespace Monopoly
                 }
                 else if (player.id != owner.id)
                 {
-                    gameManager.pay(player, owner, rent);
+                    if(hasMonopoly && rent == 0)
+                    {
+                        gameManager.pay(player, owner, 2 * incomes[rent]);
+                    }
+                    else gameManager.pay(player, owner, incomes[rent]);
                 }
                 else
                 {
@@ -496,6 +505,7 @@ namespace Monopoly
            public bool bankrupt;
            public int numOfRailroads;
            public int numOfUtil;
+           public int[] numOfColors = { 0, 0, 0, 0, 0, 0, 0, 0};            // Indigo, Light Blue, Pink, Orange, Red, Yellow, Green, Blue
            public List<Contract> ownedProperties = new List<Contract>();    // List of owned properties
             public List<Contract> CanBuyProperty = new List<Contract>(); 
             public Player(int id)
@@ -508,6 +518,7 @@ namespace Monopoly
             }
 
 
+            
         }
 
         class GameManager
@@ -616,7 +627,7 @@ namespace Monopoly
                 //
                 Form popup = new Form();                                   // Create a new form for the player info UI popup
                 popup.Text = "Player Info";                                // Button text
-                popup.Size = new Size(1000, 900);                           // Good size for player info, little smaller than board form
+                popup.Size = new Size(1000, 900);                          // Good size for player info, little smaller than board form
                 popup.StartPosition = FormStartPosition.CenterScreen;      // Center the form on the screen
                 popup.FormBorderStyle = FormBorderStyle.FixedDialog;
                 popup.ControlBox = false;
@@ -757,7 +768,7 @@ namespace Monopoly
                         {
                             endGame();
                         }
-                        MessageBox.Show("Bankruptcy clicked!");
+                        popup.Close();
                     };
 
                     
@@ -890,6 +901,11 @@ namespace Monopoly
                                         else if (TiletoBuy.contractType == "Utility")
                                         {
                                             player.numOfUtil++;
+                                        }
+                                        else if (TiletoBuy.contractType == "Land")
+                                        {
+                                            Land tempLand = (Land)TiletoBuy;
+                                            this.addPropertyColor(tempLand.color, player);
                                         }
 
 
@@ -1146,6 +1162,142 @@ namespace Monopoly
                 Console.WriteLine("Player " + jailedPlayer.id + " remains in jail: " + jailedPlayer.jailTimer);
             }
 
+            //adds a propery of a passed in color to the player's collection, and detects monopolies for each color type. When monopoly happens, hardcode the correct properties to double rent, and set house buying ability to true.
+            void addPropertyColor(Color color, Player player) 
+            {
+                if (color == Color.Indigo)
+                {
+                    
+                    player.numOfColors[0]++;
+                    Console.WriteLine(color.ToString() + " has been purchased by Player " + player.id + ". total is now: " + player.numOfColors[0]);
+                    if (player.numOfColors[0] == 2)
+                    {
+                        Console.WriteLine(color.ToString() + " Monopoly has been aquired by Player " + player.id);
+                        Land tempLand = (Land)board.tiles[1];
+                        tempLand.hasMonopoly = true;
+
+                        tempLand = (Land)board.tiles[3];
+                        tempLand.hasMonopoly = true;
+                    }
+                }
+                else if (color == Color.LightBlue)
+                {
+                    player.numOfColors[1]++;
+                    Console.WriteLine(color.ToString() + " has been purchased by Player " + player.id + ". total is now: " + player.numOfColors[1]);
+                    if (player.numOfColors[1] == 3)
+                    {
+                        Console.WriteLine(color.ToString() + " Monopoly has been aquired by Player " + player.id);
+                        Land tempLand = (Land)board.tiles[6];
+                        tempLand.hasMonopoly = true;
+
+                        tempLand = (Land)board.tiles[8];
+                        tempLand.hasMonopoly = true;
+
+                        tempLand = (Land)board.tiles[9];
+                        tempLand.hasMonopoly = true;
+                    }
+                }
+                else if (color == Color.Pink)
+                {
+                    player.numOfColors[2]++;
+                    Console.WriteLine(color.ToString() + " has been purchased by Player " + player.id + ". total is now: " + player.numOfColors[2]);
+                    if (player.numOfColors[2] == 3)
+                    {
+                        Console.WriteLine(color.ToString() + " Monopoly has been aquired by Player " + player.id);
+                        Land tempLand = (Land)board.tiles[11];
+                        tempLand.hasMonopoly = true;
+
+                        tempLand = (Land)board.tiles[13];
+                        tempLand.hasMonopoly = true;
+
+                        tempLand = (Land)board.tiles[14];
+                        tempLand.hasMonopoly = true;
+                    }
+                }
+                else if (color == Color.Orange)
+                {
+                    player.numOfColors[3]++;
+                    Console.WriteLine(color.ToString() + " has been purchased by Player " + player.id + ". total is now: " + player.numOfColors[3]);
+                    if (player.numOfColors[3] == 3)
+                    {
+                        Console.WriteLine(color.ToString() + " Monopoly has been aquired by Player " + player.id);
+                        Land tempLand = (Land)board.tiles[16];
+                        tempLand.hasMonopoly = true;
+
+                        tempLand = (Land)board.tiles[18];
+                        tempLand.hasMonopoly = true;
+
+                        tempLand = (Land)board.tiles[19];
+                        tempLand.hasMonopoly = true;
+                    }
+                }
+                else if (color == Color.Red)
+                {
+                    player.numOfColors[4]++;
+                    Console.WriteLine(color.ToString() + " has been purchased by Player " + player.id + ". total is now: " + player.numOfColors[4]);
+                    if (player.numOfColors[4] == 3)
+                    {
+                        Console.WriteLine(color.ToString() + " Monopoly has been aquired by Player " + player.id);
+                        Land tempLand = (Land)board.tiles[21];
+                        tempLand.hasMonopoly = true;
+
+                        tempLand = (Land)board.tiles[23];
+                        tempLand.hasMonopoly = true;
+
+                        tempLand = (Land)board.tiles[24];
+                        tempLand.hasMonopoly = true;
+                    }
+                }
+                else if (color == Color.Yellow)
+                {
+                    player.numOfColors[5]++;
+                    Console.WriteLine(color.ToString() + " has been purchased by Player " + player.id + ". total is now: " + player.numOfColors[5]);
+                    if (player.numOfColors[5] == 3)
+                    {
+                        Console.WriteLine(color.ToString() + " Monopoly has been aquired by Player " + player.id);
+                        Land tempLand = (Land)board.tiles[26];
+                        tempLand.hasMonopoly = true;
+
+                        tempLand = (Land)board.tiles[27];
+                        tempLand.hasMonopoly = true;
+
+                        tempLand = (Land)board.tiles[29];
+                        tempLand.hasMonopoly = true;
+                    }
+                }
+                else if (color == Color.Green)
+                {
+                    player.numOfColors[6]++;
+                    Console.WriteLine(color.ToString() + " has been purchased by Player " + player.id + ". total is now: " + player.numOfColors[6]);
+                    if (player.numOfColors[6] == 3)
+                    {
+                        Console.WriteLine(color.ToString() + " Monopoly has been aquired by Player " + player.id);
+                        Land tempLand = (Land)board.tiles[31];
+                        tempLand.hasMonopoly = true;
+
+                        tempLand = (Land)board.tiles[32];
+                        tempLand.hasMonopoly = true;
+
+                        tempLand = (Land)board.tiles[34];
+                        tempLand.hasMonopoly = true;
+                    }
+                }
+                else if (color == Color.Blue)
+                {
+                    player.numOfColors[7]++;
+                    Console.WriteLine(color.ToString() + " has been purchased by Player " + player.id + ". total is now: " + player.numOfColors[7]);
+                    if (player.numOfColors[7] == 2)
+                    {
+                        Console.WriteLine(color.ToString() + " Monopoly has been aquired by Player " + player.id);
+                        Land tempLand = (Land)board.tiles[37];
+                        tempLand.hasMonopoly = true;
+
+                        tempLand = (Land)board.tiles[29];
+                        tempLand.hasMonopoly = true;
+                    }
+                }
+            }
+
             private void giveAssets(Player bankruptPlayer, Player receivingPlayer)
             {
                 // give money
@@ -1154,17 +1306,37 @@ namespace Monopoly
                 // give property
                 for (int j = 0; j < bankruptPlayer.ownedProperties.Count; j++)
                 {
+
                     bankruptPlayer.ownedProperties[j].owner = receivingPlayer;
                     receivingPlayer.ownedProperties.Append(bankruptPlayer.ownedProperties[j]);
-                    //MAKE SURE THESE PROPERTIES ARE CONSIDERED FOR MONOPOLIES
                 }
+                for (int j = 0; j <  bankruptPlayer.ownedProperties.Count; j++)
+                {
+                    if (bankruptPlayer.ownedProperties[j].contractType == "Land")
+                    {
+                        Land tempLand = (Land)bankruptPlayer.ownedProperties[j];
+                        this.addPropertyColor(tempLand.color, receivingPlayer);
+                    }
+                }
+                receivingPlayer.numOfRailroads += bankruptPlayer.numOfRailroads;
+                receivingPlayer.numOfUtil += bankruptPlayer.numOfUtil;
+
 
                 // give jail card
             }
 
+
+
+
             private void endGame()
             {
-
+                int i = 0;
+                while (players[i].bankrupt)
+                {
+                    i++;
+                }
+                DialogResult WinnerPopup = MessageBox.Show($"Player {players[i].id} is the winner!!");
+                Application.Exit();
             }
 
             private void DisableAllButtonsIn(Control parent)
