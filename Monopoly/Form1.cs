@@ -10,6 +10,7 @@ using System.Security.Policy;
 using System.Text;
 using System.Threading.Tasks;
 using System.Windows.Forms;
+using System.Windows.Forms.VisualStyles;
 
 namespace Monopoly
 {
@@ -173,7 +174,7 @@ namespace Monopoly
 
                 body.Size = new Size(90, 90);
                 body.BackColor = Color.White;
-                body.TextAlign = ContentAlignment.TopCenter;
+                body.TextAlign = System.Drawing.ContentAlignment.TopCenter;
                 body.Text = name;
                 body.Margin = System.Windows.Forms.Padding.Empty;
 
@@ -232,7 +233,7 @@ namespace Monopoly
             {
                 this.taxAmount = taxAmount;
                 footer.Text = "-$" + taxAmount;
-                footer.TextAlign = ContentAlignment.TopCenter;
+                footer.TextAlign = System.Drawing.ContentAlignment.TopCenter;
                 footer.Visible = true;
                 //Tax Constructor
             }
@@ -284,7 +285,7 @@ namespace Monopoly
                 this.owner = owner;
                 this.price = price;
                 this.mortgageValue = mortgageValue;
-                footer.TextAlign = ContentAlignment.TopCenter;
+                footer.TextAlign = System.Drawing.ContentAlignment.TopCenter;
                 footer.Text = "$" + price;
                 footer.Visible = true;
                 //Contract Constructor
@@ -691,7 +692,7 @@ namespace Monopoly
                 currentPlayerMoney.Text = $"Balance: ${player.money}";              // Set the text of the label to the players money count
                 currentPlayerMoney.Font = new Font("Arial", 18, FontStyle.Bold);    // Set the font of the label
                 currentPlayerMoney.Dock = DockStyle.Fill;                           // Dock the label to fill the cell
-                currentPlayerMoney.TextAlign = ContentAlignment.MiddleLeft;         // Center the text in the label
+                currentPlayerMoney.TextAlign = System.Drawing.ContentAlignment.MiddleLeft;         // Center the text in the label
                 playerInfoTable.SetColumnSpan(currentPlayerMoney, 2);               // Set the column span of the label to 3
                 playerInfoTable.Controls.Add(currentPlayerMoney, 0, 1);             // Add the label to the table layout panel at row 0, column 0
 
@@ -815,11 +816,32 @@ namespace Monopoly
 
                  };
 
+                List<Contract> ownedProps = player.ownedProperties;
+
+                var monopolyGroups = new HashSet<string>();
+
+
+                foreach (var group in propertyGroups)
+                {
+                    string groupName = group.Key;
+                    string[] groupTiles = group.Value;
+
+                    // if the player owns every tile in this specific color group
+                    if(groupTiles.All(tileName =>
+                            ownedProps.Any(c =>c.name == tileName)))
+                    {
+                        monopolyGroups.Add(groupName);
+                    }
+                }
+
                 int yOffset = 10;
                 Dictionary<string, GroupBox> groupBoxMap = new Dictionary<string, GroupBox>();
 
                 foreach (var group in propertyGroups)
                 {
+                    string groupName = group.Key;
+                    string[] groupTiles = group.Value;
+
 
                     // Find the subset of properties that are visible to the player. onwed properties or can buy properties
                     var visibleProps = group.Value
@@ -857,13 +879,16 @@ namespace Monopoly
                     int rowIndex = 0;
                     foreach (var prop in visibleProps)
                     {
+                        bool ownsFullSet = monopolyGroups.Contains(groupName);
                         bool isBuyable = player.CanBuyProperty.Any(c => c.name == prop);
                         bool isOwned = player.ownedProperties.Any(o => o.name == prop);
+
+                        var thisContract = board.tiles.OfType<Contract>().First(c => c.name == prop);
 
                         Label propLabel = new Label();
                         propLabel.Text = prop;
                         propLabel.Dock = DockStyle.Fill;
-                        propLabel.TextAlign = ContentAlignment.MiddleLeft;
+                        propLabel.TextAlign = System.Drawing.ContentAlignment.MiddleLeft;
                         propLabel.BorderStyle = BorderStyle.FixedSingle;
                         propLabel.Visible = true; // For now all visible (later use ownership logic)76yu
 
@@ -934,7 +959,34 @@ namespace Monopoly
                         BuyHouse.Dock = DockStyle.Fill;
                         BuyHouse.Click += (s, ev) =>
                         {
+                            int buildHousePrice = ((Land)thisContract).buildPrice; 
 
+
+                            if (!monopolyGroups.Contains(groupName))
+                            {
+                                MessageBox.Show($"You need to own all properties in the color group to build houses.");
+                            }
+                            else
+                            {
+                                
+                                if(players[i].money >= buildHousePrice)
+                                {
+                                    players[i].money -= buildHousePrice;    // Subtract cost of house from players money. 
+                                    ((Land)thisContract).rent++;
+                                    Console.WriteLine($"Player# {players[i].id} has purchased a house on {((Land)thisContract).name}");
+
+
+                                    /* Add house to this tile somehow */
+                                    /* Update the UI to show the new house count */
+                                }
+                                else
+                                {
+                                    MessageBox.Show($"Not enough money to buy a house on {prop}");
+                                }
+
+                                
+
+                            }
                         };
 
                         Button Sell = new Button();
