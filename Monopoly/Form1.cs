@@ -769,6 +769,7 @@ namespace Monopoly
                         {
                             endGame();
                         }
+                        PlayerInfoButton.Enabled = true;
                         popup.Close();
                     };
 
@@ -779,7 +780,7 @@ namespace Monopoly
                     actionButtons.Controls.Add(paymentButton, 0, 0);
                     actionButtons.Controls.Add(bankruptcyButton, 1, 0);
                 }
-                /* PAYMENT AND BANKRUPTCY BUTTONS END*/
+                /* PAYMENT AND BANKRUPTCY BUTTONS END */
 
 
                 /* PROPERIES SECTION */
@@ -1356,11 +1357,30 @@ namespace Monopoly
                 receivingPlayer.money += bankruptPlayer.money;
 
                 // give property
+
+
+                Console.WriteLine("Bankrupt Player Props: ");
+                foreach (Contract prop in bankruptPlayer.ownedProperties)
+                {
+                    Console.WriteLine(" " +  prop.name + " ");
+                }
+                Console.WriteLine(bankruptPlayer.numOfRailroads);
+                Console.WriteLine(bankruptPlayer.numOfUtil);
+
+                Console.WriteLine("Reveiving Player Props: ");
+                foreach (Contract prop in receivingPlayer.ownedProperties)
+                {
+                    Console.WriteLine(" " + prop.name + " ");
+                }
+                Console.WriteLine(receivingPlayer.numOfRailroads);
+                Console.WriteLine(receivingPlayer.numOfUtil);
+
+
                 for (int j = 0; j < bankruptPlayer.ownedProperties.Count; j++)
                 {
 
                     bankruptPlayer.ownedProperties[j].owner = receivingPlayer;
-                    receivingPlayer.ownedProperties.Append(bankruptPlayer.ownedProperties[j]);
+                    receivingPlayer.ownedProperties.Add(bankruptPlayer.ownedProperties[j]);
                 }
                 for (int j = 0; j <  bankruptPlayer.ownedProperties.Count; j++)
                 {
@@ -1372,6 +1392,20 @@ namespace Monopoly
                 }
                 receivingPlayer.numOfRailroads += bankruptPlayer.numOfRailroads;
                 receivingPlayer.numOfUtil += bankruptPlayer.numOfUtil;
+                Console.WriteLine(receivingPlayer.numOfRailroads);
+                Console.WriteLine(receivingPlayer.numOfUtil);
+
+
+                Console.WriteLine("Bankrupt Player Props: ");
+                foreach (Contract prop in bankruptPlayer.ownedProperties)
+                {
+                    Console.WriteLine(" " + prop.name + " ");
+                }
+                Console.WriteLine("Reveiving Player Props: ");
+                foreach (Contract prop in receivingPlayer.ownedProperties)
+                {
+                    Console.WriteLine(" " + prop.name + " ");
+                }
 
 
                 // give jail card
